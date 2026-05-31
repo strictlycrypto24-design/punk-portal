@@ -1,0 +1,3029 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punk Portal | Ecosystem Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://static.network.keeta.com/keetanet-browser.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Cosmic Depth */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 10% 30%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+        }
+
+        /* High-Contrast Neon Glassmorphism */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-top: 1px solid #ec4899;
+            box-shadow: 0 15px 30px -10px rgba(236, 72, 153, 0.15);
+            transform: translateY(-2px);
+        }
+
+        h1, h2, h3, .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Ultra-Crisp High Contrast Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-pink {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-amber {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-glow { text-shadow: 0 0 25px rgba(6, 182, 212, 0.6); }
+
+        .tab-btn { position: relative; padding-bottom: 0.5rem; color: #94a3b8; transition: color 0.3s ease; font-weight: 700; }
+        .tab-btn:hover, .tab-btn.active { color: #ffffff; }
+        .tab-btn::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: #06b6d4; transition: width 0.3s ease;
+        }
+        .tab-btn:hover::after, .tab-btn.active::after { width: 100%; box-shadow: 0 0 12px #06b6d4; }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ─── Festival floating ticker banner ─── */
+        .festival-ticker {
+            background: linear-gradient(90deg, rgba(236, 72, 153, 0.18) 0%, rgba(139, 92, 246, 0.18) 50%, rgba(6, 182, 212, 0.18) 100%);
+            border-bottom: 1px solid rgba(236, 72, 153, 0.35);
+            overflow: hidden;
+            position: relative;
+            padding: 8px 0;
+        }
+        .festival-ticker-track {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker-scroll 38s linear infinite;
+            padding-left: 100%;
+        }
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-item {
+            display: inline-block;
+            margin: 0 2.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.18em;
+            color: #fff;
+            text-shadow: 0 0 12px rgba(236, 72, 153, 0.65);
+        }
+        .ticker-item .pulse {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ec4899;
+            margin-right: 10px;
+            box-shadow: 0 0 12px #ec4899;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            vertical-align: middle;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.4); }
+        }
+
+        /* ─── Collection card (PunkSwap style) ─── */
+        .col-card {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex; flex-direction: column;
+        }
+        .col-card:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.18);
+            transform: translateY(-3px);
+        }
+        .col-card-img {
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(6, 78, 59, 0.4));
+            position: relative; overflow: hidden;
+        }
+        .col-card-img img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        /* When the IPFS-fallback chain in buildImgWithFallback() has exhausted
+           all gateways, it sets data-img-failed="1" on the parent. Reveal the
+           emoji fallback element underneath. */
+        .col-card-img[data-img-failed="1"] .fallback { display: flex !important; }
+        .col-card:hover .col-card-img img { transform: scale(1.05); }
+        .col-card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+        .col-card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+            color: #f97316;
+        }
+        .col-card-desc {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.62rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: rgba(134, 239, 172, 0.75);
+            margin-bottom: 8px;
+        }
+        .col-card-stats {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 8px;
+        }
+        .col-card-stats .lbl { color: rgba(255, 255, 255, 0.4); display: block; font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;}
+        .col-card-stats .val { color: #00ffff; font-weight: 700; }
+        .col-card-stats .val-pink { color: #f472b6; font-weight: 700; }
+
+        .blind-badge {
+            position: absolute; top: 8px; left: 8px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.92), rgba(59, 130, 246, 0.92));
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.52rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .verified-badge {
+            position: absolute; top: 8px; right: 8px;
+            background: rgba(6, 182, 212, 0.95);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.52rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        /* ─── NFT detail modal ─── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: rgba(10, 10, 10, 0.97);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 1.25rem;
+            max-width: 1100px;
+            width: 100%;
+            padding: 2rem;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(236, 72, 153, 0.15);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            color: #ec4899;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: rgba(236, 72, 153, 0.3); transform: rotate(90deg); }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 14px;
+        }
+        .nft-tile {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .nft-tile:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: translateY(-2px);
+        }
+        .nft-tile-img {
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(135deg, rgba(88, 28, 135, 0.3), rgba(6, 78, 59, 0.3));
+            overflow: hidden;
+        }
+        .nft-tile-img img { width: 100%; height: 100%; object-fit: cover; }
+        .nft-tile-img[data-img-failed="1"] .tile-fallback { display: flex !important; }
+        .nft-tile-name {
+            padding: 8px 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nft-tile-price {
+            padding: 0 10px 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.6rem;
+            color: #00ffff;
+        }
+
+        /* ─── Festival promo box ─── */
+        .festival-promo {
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(139, 92, 246, 0.12) 50%, rgba(251, 191, 36, 0.1) 100%),
+                radial-gradient(circle at 80% 50%, rgba(236, 72, 153, 0.25) 0%, transparent 60%);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            border-top: 1px solid rgba(251, 191, 36, 0.5);
+        }
+        .festival-promo::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent 0,
+                transparent 20px,
+                rgba(236, 72, 153, 0.04) 20px,
+                rgba(236, 72, 153, 0.04) 21px
+            );
+            pointer-events: none;
+        }
+
+        .live-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #4ade80;
+            letter-spacing: 0.1em;
+        }
+        .live-pulse::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.4s ease-out; }
+
+        /* ─── True Burn Vault — fire animation ─── */
+        @keyframes burnPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.6), 0 0 30px rgba(249,115,22,0.4); transform: scale(1); }
+            30%  { box-shadow: 0 0 0 12px rgba(249,115,22,0), 0 0 60px rgba(249,115,22,0.7); transform: scale(1.015); }
+            100% { box-shadow: 0 0 0 0 rgba(249,115,22,0), 0 0 0 rgba(249,115,22,0); transform: scale(1); }
+        }
+        @keyframes burnFlameShake {
+            0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.1; }
+            20%      { transform: rotate(-8deg) scale(1.4); opacity: 1; }
+            40%      { transform: rotate(6deg)  scale(1.5); opacity: 1; }
+            60%      { transform: rotate(-4deg) scale(1.3); opacity: 0.9; }
+            80%      { transform: rotate(2deg)  scale(1.15); opacity: 0.4; }
+        }
+        @keyframes burnNumberFlash {
+            0%, 100% { color: transparent; }
+            50%      { color: #fbbf24; text-shadow: 0 0 25px #fbbf24, 0 0 50px #f97316; }
+        }
+        .burn-firing {
+            animation: burnPulse 1.6s ease-out;
+        }
+        .burn-firing #burnFlameOverlay { opacity: 1 !important; }
+        .burn-firing #burnFlameEmoji   { animation: burnFlameShake 1.4s ease-out; }
+        .burn-firing #statBurnTotal    { animation: burnNumberFlash 1.4s ease-out; }
+    </style>
+</head>
+<body>
+    <div class="ambient-bg"></div>
+
+    <!-- ─── FESTIVAL FLOATING BANNER ─── -->
+    <div class="festival-ticker">
+        <div class="festival-ticker-track">
+            <span class="ticker-item"><span class="pulse"></span>🎪 PUNK FESTIVAL GOING LIVE SOON</span>
+            <span class="ticker-item"><span class="pulse"></span>💎 EARN POINTS · WIN PRIZES · CLAIM TIERS</span>
+            <span class="ticker-item"><span class="pulse"></span>🏆 LEADERBOARDS · LOOT COUPONS · MAJOR REWARDS</span>
+            <span class="ticker-item"><span class="pulse"></span>🎪 PUNK FESTIVAL GOING LIVE SOON</span>
+            <span class="ticker-item"><span class="pulse"></span>⚡ STAY TUNED ON PUNKSWAP FOR THE COUNTDOWN</span>
+            <span class="ticker-item"><span class="pulse"></span>🎪 PUNK FESTIVAL GOING LIVE SOON</span>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="p-6 flex flex-col md:flex-row justify-between items-center glass-card m-4 md:mx-8 md:mt-6 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-600 to-pink-500 flex items-center justify-center font-black text-black orbitron shadow-[0_0_15px_rgba(6,182,212,0.4)]">P</div>
+            <h1 class="text-2xl font-black tracking-widest text-white drop-shadow-md">
+                PUNK <span class="text-gradient">PORTAL</span>
+            </h1>
+        </div>
+
+        <div class="flex space-x-6 md:space-x-8 text-sm uppercase tracking-wider overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-hide">
+            <button onclick="showPage('home', this)" class="tab-btn active whitespace-nowrap">Home</button>
+            <button onclick="showPage('marketplace', this)" class="tab-btn whitespace-nowrap">Marketplace</button>
+            <button onclick="showPage('wallet', this)" class="tab-btn whitespace-nowrap">⚡ My Wallet</button>
+            <button onclick="showPage('punkswap', this)" class="tab-btn whitespace-nowrap">PunkSwap</button>
+            <button onclick="showPage('gridlands', this)" class="tab-btn whitespace-nowrap">Gridlands</button>
+            <button onclick="showPage('whitepaper', this)" class="tab-btn whitespace-nowrap">Whitepaper</button>
+        </div>
+    </nav>
+
+    <main class="p-4 md:p-8 max-w-[1600px] mx-auto">
+
+        <!-- ================= HOME TAB ================= -->
+        <section id="home" class="space-y-8 animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 glass-card p-8 md:p-10 relative overflow-hidden flex flex-col justify-center">
+                    <div class="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl -mr-24 -mt-24"></div>
+                    <h2 class="text-4xl md:text-5xl font-black mb-4 neon-glow text-white tracking-tight leading-none">THE COMMAND CENTER</h2>
+                    <p class="text-slate-300 text-base md:text-lg max-w-xl leading-relaxed font-light">
+                        Real-time quantitative metrics and tracking interfaces for the entire Keeta native <span class="text-cyan-400 font-bold">KeePunks</span> macroeconomy.
+                    </p>
+                    <div class="mt-4 flex items-center gap-3">
+                        <span class="live-pulse" id="liveStatus">Loading…</span>
+                        <span class="text-xs text-slate-500 font-mono" id="lastUpdated">—</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div class="glass-card p-6 border-t-[#8b5cf6]">
+                        <h3 class="text-slate-400 text-xs uppercase tracking-widest font-bold mb-1">Global Trade Volume</h3>
+                        <p class="text-3xl font-black text-white" id="statTotalVolume">— <span class="text-purple-400 text-lg font-bold">KTA</span></p>
+                        <p class="text-xs text-slate-500 mt-1" id="statTotalVolumePunks">— PUNKS</p>
+                    </div>
+                    <div class="glass-card p-6 border-t-[#ec4899]">
+                        <h3 class="text-slate-400 text-xs uppercase tracking-widest font-bold mb-1">$PUNKS Trade Volume</h3>
+                        <p class="text-3xl font-black text-gradient-pink" id="statPunksCirc">—</p>
+                        <p class="text-xs text-slate-500 mt-1" id="statPunksFloor">Floor — KTA/M</p>
+                    </div>
+                    <!-- ─── True Burn Vault card ─── -->
+                    <div id="burnCard" class="glass-card p-6 border-t-[#f97316] relative overflow-hidden transition-all duration-500">
+                        <!-- Flame burst overlay (hidden by default, triggered on burn detected) -->
+                        <div id="burnFlameOverlay" class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700"
+                             style="background: radial-gradient(circle at 50% 50%, rgba(249,115,22,0.5) 0%, rgba(239,68,68,0.25) 35%, transparent 70%);"></div>
+                        <div id="burnFlameEmoji" class="absolute -right-6 -top-6 text-6xl opacity-10 transition-all duration-700">🔥</div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-slate-400 text-xs uppercase tracking-widest font-bold">True Burn Vault</h3>
+                                <span class="px-1.5 py-0.5 bg-orange-500/15 border border-orange-500/30 rounded text-[9px] font-black orbitron text-orange-400 tracking-widest">LIVE</span>
+                            </div>
+                            <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500" id="statBurnTotal">—</p>
+                            <p class="text-xs text-slate-500 mt-1" id="statBurnPct">— % of 67B supply</p>
+
+                            <!-- ─── Mini burn history chart ─── -->
+                            <div class="mt-3 pt-3 border-t border-white/5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <p class="text-[10px] text-slate-500 orbitron uppercase tracking-widest">Burn History</p>
+                                    <span class="text-[9px] text-orange-400 orbitron font-bold" id="burnDelta">—</span>
+                                </div>
+                                <div class="h-[60px] w-full">
+                                    <canvas id="burnChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 pt-3 border-t border-white/5">
+                                <p class="text-[10px] text-slate-500 orbitron uppercase tracking-widest mb-1">Effective Circulating</p>
+                                <p class="text-lg font-black text-white" id="statEffectiveCirc">— <span class="text-orange-400 text-xs font-bold">PUNKS</span></p>
+                            </div>
+                            <a href="https://explorer.keeta.com/account/keeta_aabrwqqwtbahteycc4stsum5s35jg7wjqak2eekrwkri2ssahie77g5ye6su5oi"
+                               target="_blank" rel="noopener"
+                               class="inline-block mt-3 text-[10px] orbitron uppercase tracking-widest text-orange-400 hover:text-orange-300 transition-colors">
+                                Verify on Keeta Explorer →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Quick stats bar ─── -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="glass-card p-5 border-t-cyan-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total NFTs Minted</p>
+                    <p class="text-2xl font-black text-white" id="statTotalNFTs">—</p>
+                </div>
+                <div class="glass-card p-5 border-t-purple-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Active Listings</p>
+                    <p class="text-2xl font-black text-white" id="statActiveListings">—</p>
+                </div>
+                <div class="glass-card p-5 border-t-pink-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Verified Collections</p>
+                    <p class="text-2xl font-black text-white" id="statCollections">—</p>
+                </div>
+                <div class="glass-card p-5 border-t-yellow-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Unique Traders</p>
+                    <p class="text-2xl font-black text-white" id="statUniqueWallets">—</p>
+                </div>
+                <div class="glass-card p-5 border-t-emerald-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">NFT Holders</p>
+                    <p class="text-2xl font-black text-white" id="statHolders">—</p>
+                </div>
+            </div>
+
+            <!-- ─── Charts ─── -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-card p-6 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold tracking-tight text-white">PunkSwap Marketplace Volume</h3>
+                        <span class="px-2.5 py-0.5 bg-cyan-500/10 text-cyan-400 rounded-full text-xs font-bold border border-cyan-500/20">Live Sync</span>
+                    </div>
+                    <div class="flex space-x-1.5 overflow-x-auto pb-3 mb-2 scrollbar-hide text-[11px] font-bold" id="swap-timeframes"></div>
+                    <div class="h-[260px] w-full">
+                        <canvas id="swapChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold tracking-tight text-white">$PUNKS Activity</h3>
+                        <span class="px-2.5 py-0.5 bg-purple-500/10 text-purple-400 rounded-full text-xs font-bold border border-purple-500/20">PUNKS-paid sales</span>
+                    </div>
+                    <div class="flex space-x-1.5 overflow-x-auto pb-3 mb-2 scrollbar-hide text-[11px] font-bold" id="coin-timeframes"></div>
+                    <div class="h-[260px] w-full">
+                        <canvas id="coinChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── LIVE TRANSACTIONS FEED ─── -->
+            <div class="glass-card p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-bold tracking-tight text-white">Recent PunkSwap Activity</h3>
+                        <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold border border-emerald-500/30 flex items-center gap-1.5">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" style="animation: pulse-dot 1.5s ease-in-out infinite;"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div class="flex gap-1.5 text-[11px] font-bold" id="feed-filters">
+                        <button data-filter="all" class="feed-filter-btn px-2.5 py-1 rounded transition-all border bg-cyan-500/10 text-cyan-400 border-cyan-500/30">All</button>
+                        <button data-filter="sale" class="feed-filter-btn px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white">Sales</button>
+                        <button data-filter="listing" class="feed-filter-btn px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white">Listings</button>
+                        <button data-filter="mint" class="feed-filter-btn px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white">Mints</button>
+                    </div>
+                </div>
+                <div id="liveFeed" class="space-y-2 overflow-y-auto scrollbar-hide" style="max-height: 480px;">
+                    <p class="text-center text-slate-500 mono text-xs py-8">Loading recent activity…</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MARKETPLACE TAB ================= -->
+        <section id="marketplace" class="hidden space-y-8 animate-fade-in">
+
+            <!-- ─── PUNK FESTIVAL PROMO BOX ─── -->
+            <div class="festival-promo glass-card p-6 md:p-8 relative">
+                <div class="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="live-pulse">LAUNCHING SOON</span>
+                            <span class="text-xs orbitron font-bold text-pink-300 uppercase tracking-widest">Event · Limited Window</span>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-black text-gradient-amber tracking-tight leading-none mb-3 orbitron">🎪 PUNK FESTIVAL</h2>
+                        <p class="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed font-light mb-4">
+                            The biggest event in the Keeta ecosystem. Earn festival points by trading, listing, minting and bidding on PunkSwap. Climb the leaderboard, unlock <span class="text-pink-400 font-bold">Ghost</span>, <span class="text-purple-400 font-bold">Punk</span>, <span class="text-cyan-400 font-bold">Node</span> and <span class="text-amber-400 font-bold">Grid</span> tiers, and claim loot coupons, fee discounts and major rank prizes.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-pink-500/15 border border-pink-500/35 text-pink-300 rounded-full text-xs font-bold orbitron">PURCHASE · +pts</span>
+                            <span class="px-3 py-1 bg-purple-500/15 border border-purple-500/35 text-purple-300 rounded-full text-xs font-bold orbitron">LIST · +pts</span>
+                            <span class="px-3 py-1 bg-cyan-500/15 border border-cyan-500/35 text-cyan-300 rounded-full text-xs font-bold orbitron">MINT · +pts</span>
+                            <span class="px-3 py-1 bg-amber-500/15 border border-amber-500/35 text-amber-300 rounded-full text-xs font-bold orbitron">BID · +pts</span>
+                            <span class="px-3 py-1 bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 rounded-full text-xs font-bold orbitron">KTA SPEND · BONUS</span>
+                            <span class="px-3 py-1 bg-fuchsia-500/15 border border-fuchsia-500/35 text-fuchsia-300 rounded-full text-xs font-bold orbitron">PUNKS SPEND · BONUS</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center text-center min-w-[180px]">
+                        <div class="w-32 h-32 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-amber-500 flex items-center justify-center text-6xl shadow-[0_0_45px_rgba(236,72,153,0.5)] mb-3">
+                            🎪
+                        </div>
+                        <button onclick="launchPunkSwap('tab-festival')" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-black px-6 py-3 rounded-xl orbitron text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(236,72,153,0.5)] transition-all w-full">
+                            Open in PunkSwap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card p-5 border-t-cyan-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total Volume</p>
+                    <p class="text-2xl font-black text-white" id="mpTotalVolume">— <span class="text-cyan-400 text-sm">KTA</span></p>
+                </div>
+                <div class="glass-card p-5 border-t-purple-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Items Listed</p>
+                    <p class="text-2xl font-black text-white" id="mpItemsListed">— <span class="text-purple-400 text-sm">NFTs</span></p>
+                </div>
+                <div class="glass-card p-5 border-t-pink-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Lowest Floor</p>
+                    <p class="text-2xl font-black text-white" id="mpFloor">— <span class="text-pink-400 text-sm">KTA</span></p>
+                </div>
+                <div class="glass-card p-5 border-t-yellow-500">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Unique Wallets</p>
+                    <p class="text-2xl font-black text-white" id="mpUniqueWallets">— <span class="text-yellow-400 text-sm">Users</span></p>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-black text-white tracking-tight uppercase">Verified NFT Collections</h2>
+                        <p class="text-sm text-cyan-400 font-medium">Live from PunkSwap · click a card to preview 20 random NFTs</p>
+                    </div>
+                    <button onclick="launchPunkSwap('tab-market')" class="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 px-4 py-2 rounded-lg orbitron text-xs uppercase tracking-widest font-bold transition-all">
+                        View all on PunkSwap →
+                    </button>
+                </div>
+
+                <div id="collectionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- skeleton cards while loading -->
+                    <div class="col-card"><div class="col-card-img skeleton"></div><div class="col-card-body"><div class="skeleton h-4 mb-2 rounded"></div><div class="skeleton h-3 w-2/3 rounded"></div></div></div>
+                    <div class="col-card"><div class="col-card-img skeleton"></div><div class="col-card-body"><div class="skeleton h-4 mb-2 rounded"></div><div class="skeleton h-3 w-2/3 rounded"></div></div></div>
+                    <div class="col-card"><div class="col-card-img skeleton"></div><div class="col-card-body"><div class="skeleton h-4 mb-2 rounded"></div><div class="skeleton h-3 w-2/3 rounded"></div></div></div>
+                    <div class="col-card"><div class="col-card-img skeleton"></div><div class="col-card-body"><div class="skeleton h-4 mb-2 rounded"></div><div class="skeleton h-3 w-2/3 rounded"></div></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PUNKSWAP TAB ================= -->
+        <!-- ================= MY WALLET TAB ================= -->
+        <section id="wallet" class="hidden animate-fade-in">
+            <!-- ─── Phishing warning (always visible at top) ─── -->
+            <div class="glass-card p-4 mb-6 border-t-[#f59e0b]" style="background:rgba(245,158,11,.04);">
+                <div class="flex items-start gap-3">
+                    <div class="text-2xl flex-shrink-0">🛡️</div>
+                    <div class="text-xs leading-relaxed">
+                        <p class="font-bold text-amber-400 mb-1 orbitron tracking-wider text-[11px]">SECURITY CHECK</p>
+                        <p class="text-slate-300">Verify URL: <code id="walletUrlCheck" class="text-cyan-300 font-mono"></code></p>
+                        <p class="text-slate-500 mt-1">Never enter your seed phrase on any other site. Your seed is encrypted locally and never sent to any server.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Screen: Sign In (locked / not yet connected) ─── -->
+            <div id="walletScreenLocked" class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Left: branding -->
+                <div class="glass-card p-8 lg:p-10 flex flex-col justify-center">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-black orbitron">⚡</div>
+                        <h2 class="text-3xl orbitron font-black tracking-wider">PUNKGRID</h2>
+                    </div>
+                    <p class="text-slate-400 text-sm mb-6 leading-relaxed">Your self-custodial Keeta wallet — built into the Punk Portal. Manage NFTs, send tokens, stake PUNKS, and claim rewards without leaving the dashboard.</p>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center gap-3 text-slate-300"><span class="text-cyan-400">✓</span> Self-custodial · your keys stay on this device</div>
+                        <div class="flex items-center gap-3 text-slate-300"><span class="text-cyan-400">✓</span> AES-256-GCM encrypted local vault</div>
+                        <div class="flex items-center gap-3 text-slate-300"><span class="text-cyan-400">✓</span> Compatible with PunkSwap, Alpaca, any BIP-39 wallet</div>
+                        <div class="flex items-center gap-3 text-slate-300"><span class="text-cyan-400">✓</span> Auto-lock after inactivity</div>
+                    </div>
+                </div>
+
+                <!-- Right: sign-in card -->
+                <div class="glass-card p-6 lg:p-8">
+                    <!-- Tabs -->
+                    <div class="flex gap-1 bg-black/40 rounded-xl p-1 mb-6" id="walletAuthTabs">
+                        <button data-walletauthtab="import" class="walletauth-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all bg-cyan-500/15 text-cyan-300">Import</button>
+                        <button data-walletauthtab="create" class="walletauth-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all text-slate-500 hover:text-white">Create</button>
+                        <button data-walletauthtab="unlock" class="walletauth-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all text-slate-500 hover:text-white" id="walletAuthTabUnlock" style="display:none;">🔓 Unlock</button>
+                    </div>
+
+                    <!-- Panel: Import -->
+                    <div id="walletPanelImport">
+                        <p class="text-xs text-slate-400 mb-3">Enter your 12 or 24-word BIP-39 seed phrase to import an existing wallet.</p>
+                        <textarea id="walletImportSeed" rows="4"
+                            spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
+                            placeholder="word1 word2 word3 ..."
+                            class="w-full p-3 bg-black/40 border border-white/10 rounded-lg text-sm font-mono text-cyan-200 focus:border-cyan-500/60 focus:outline-none resize-none"></textarea>
+                        <div class="flex justify-between items-center mt-2 mb-4">
+                            <span id="walletImportWordCount" class="text-[10px] mono text-slate-500">0 / 24 words</span>
+                            <span class="text-[10px] mono text-slate-600">Encrypted locally · never sent</span>
+                        </div>
+                        <button id="walletImportBtn" class="w-full py-3 rounded-lg orbitron text-xs font-black tracking-widest bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all">CONNECT WALLET</button>
+                    </div>
+
+                    <!-- Panel: Create -->
+                    <div id="walletPanelCreate" style="display:none">
+                        <div id="walletCreateStep1">
+                            <p class="text-xs text-slate-400 mb-4">Generate a new 24-word BIP-39 seed phrase. Compatible with PunkSwap, Alpaca, and any Keeta wallet.</p>
+                            <button id="walletGenerateBtn" class="w-full py-3 rounded-lg orbitron text-xs font-black tracking-widest bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 transition-all">⚡ GENERATE NEW WALLET</button>
+                        </div>
+                        <div id="walletCreateStep2" style="display:none">
+                            <p class="text-xs text-amber-400 mb-3 font-bold orbitron tracking-wider">⚠ WRITE THIS DOWN — NEVER SHOW ANYONE</p>
+                            <div id="walletCreateSeedGrid" class="grid grid-cols-3 gap-2 mb-3"></div>
+                            <div class="flex items-start gap-2 mb-4">
+                                <input type="checkbox" id="walletCreateConfirm" class="mt-1">
+                                <label for="walletCreateConfirm" class="text-xs text-slate-400 cursor-pointer">I have written down my seed phrase and stored it somewhere safe</label>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="walletCreateCopyBtn" class="flex-1 py-2.5 rounded-lg orbitron text-[10px] font-bold tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all">📋 Copy</button>
+                                <button id="walletCreateConnectBtn" class="flex-1 py-2.5 rounded-lg orbitron text-[10px] font-bold tracking-wider bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 transition-all" disabled style="opacity:.45;">✅ I've Saved It — Connect</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Unlock (password) -->
+                    <div id="walletPanelUnlock" style="display:none">
+                        <p class="text-xs text-slate-400 mb-3">Enter your unlock password to access your saved wallet on this device.</p>
+                        <input type="password" id="walletUnlockPassword" placeholder="Password"
+                            class="w-full p-3 bg-black/40 border border-white/10 rounded-lg text-sm focus:border-cyan-500/60 focus:outline-none mb-2">
+                        <p id="walletUnlockMessage" class="text-[10px] mono text-slate-500 mb-4 min-h-[14px]"></p>
+                        <button id="walletUnlockBtn" class="w-full py-3 rounded-lg orbitron text-xs font-black tracking-widest bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 transition-all">🔓 UNLOCK WALLET</button>
+                        <button id="walletUnlockUseSeed" class="w-full py-2 mt-2 text-[10px] orbitron tracking-wider text-slate-500 hover:text-white transition">use seed phrase instead →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Screen: Wallet Dashboard (unlocked) ─── -->
+            <div id="walletScreenUnlocked" style="display:none">
+                <!-- Top bar: address + balances + actions -->
+                <div class="glass-card p-6 mb-6 border-t-[#06b6d4]">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-black orbitron flex-shrink-0">⚡</div>
+                            <div>
+                                <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">Connected · Keeta Mainnet</p>
+                                <button id="walletAddressCopy" class="text-sm font-mono text-cyan-300 hover:text-cyan-200 transition cursor-pointer" title="Click to copy">—</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button id="walletSendKtaBtn" class="px-4 py-2 rounded-lg orbitron text-[11px] font-bold tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition">↗ Send KTA</button>
+                            <button id="walletSendPunksBtn" class="px-4 py-2 rounded-lg orbitron text-[11px] font-bold tracking-wider bg-pink-500/15 border border-pink-500/30 text-pink-300 hover:bg-pink-500/25 transition">↗ Send PUNKS</button>
+                            <button id="walletRefreshBtn" class="px-4 py-2 rounded-lg orbitron text-[11px] font-bold tracking-wider bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 transition" title="Refresh balances">↻</button>
+                            <button id="walletLockBtn" class="px-4 py-2 rounded-lg orbitron text-[11px] font-bold tracking-wider bg-white/5 border border-white/10 text-slate-400 hover:text-white transition">🔒 Lock</button>
+                        </div>
+                    </div>
+
+                    <!-- Balances grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">KTA Balance</p>
+                            <p class="text-2xl font-black text-amber-300" id="walletKtaBalance">—</p>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">PUNKS Balance</p>
+                            <p class="text-2xl font-black text-pink-300" id="walletPunksBalance">—</p>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">NFTs Owned</p>
+                            <p class="text-2xl font-black text-cyan-300" id="walletNftCount">—</p>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">Active Listings</p>
+                            <p class="text-2xl font-black text-purple-300" id="walletActiveListings">—</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-tabs: Vault / Activity / Staking -->
+                <div class="flex gap-1 bg-black/40 rounded-xl p-1 mb-6 max-w-md" id="walletSubTabs">
+                    <button data-walletsubtab="vault" class="walletsub-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all bg-cyan-500/15 text-cyan-300">My Vault</button>
+                    <button data-walletsubtab="activity" class="walletsub-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all text-slate-500 hover:text-white">Activity</button>
+                    <button data-walletsubtab="staking" class="walletsub-tab flex-1 py-2 px-3 rounded-lg text-xs orbitron font-bold tracking-wider transition-all text-slate-500 hover:text-white">Staking</button>
+                </div>
+
+                <!-- Sub-panel: Vault (NFT grid) -->
+                <div id="walletSubVault" class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg orbitron font-bold tracking-tight">My NFT Vault</h3>
+                        <span id="walletVaultCount" class="text-xs mono text-slate-500">—</span>
+                    </div>
+                    <div id="walletNftGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div class="col-span-full py-12 text-center text-slate-500 mono text-xs">Loading your NFTs…</div>
+                    </div>
+                </div>
+
+                <!-- Sub-panel: Activity -->
+                <div id="walletSubActivity" class="glass-card p-6" style="display:none">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg orbitron font-bold tracking-tight">My Transaction History</h3>
+                        <span id="walletActivityCount" class="text-xs mono text-slate-500">—</span>
+                    </div>
+                    <div id="walletActivityList" class="space-y-2">
+                        <div class="py-12 text-center text-slate-500 mono text-xs">Loading transactions…</div>
+                    </div>
+                </div>
+
+                <!-- Sub-panel: Staking -->
+                <div id="walletSubStaking" class="glass-card p-6" style="display:none">
+                    <h3 class="text-lg orbitron font-bold tracking-tight mb-4">Staking Dashboard</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">Total Staked</p>
+                            <p class="text-2xl font-black text-purple-300" id="walletStakedAmount">—</p>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">Claimable Rewards</p>
+                            <p class="text-2xl font-black text-emerald-300" id="walletClaimableRewards">—</p>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <p class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1">Pool Share</p>
+                            <p class="text-2xl font-black text-cyan-300" id="walletPoolShare">—</p>
+                        </div>
+                    </div>
+                    <button id="walletClaimBtn" class="w-full py-3 rounded-lg orbitron text-xs font-black tracking-widest bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 transition-all">🌟 CLAIM REWARDS</button>
+                    <p class="text-[10px] mono text-slate-500 text-center mt-3">Detailed staking management available on PunkSwap</p>
+                </div>
+            </div>
+
+            <!-- ─── Send Modal (overlay) ─── -->
+            <div id="walletSendModal" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);">
+                <div class="absolute inset-0 flex items-center justify-center p-4">
+                    <div class="glass-card p-6 max-w-md w-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="walletSendTitle" class="text-lg orbitron font-bold">Send KTA</h3>
+                            <button id="walletSendClose" class="text-slate-500 hover:text-white text-2xl leading-none">×</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1 block">Recipient Address</label>
+                                <input type="text" id="walletSendTo" spellcheck="false" autocomplete="off"
+                                    placeholder="keeta_..."
+                                    class="w-full p-3 bg-black/40 border border-white/10 rounded-lg text-sm font-mono focus:border-cyan-500/60 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] orbitron uppercase tracking-widest text-slate-500 mb-1 block flex justify-between"><span>Amount</span> <span id="walletSendMaxLabel" class="text-slate-400">—</span></label>
+                                <div class="relative">
+                                    <input type="number" id="walletSendAmount" step="any" min="0" placeholder="0.00"
+                                        class="w-full p-3 pr-16 bg-black/40 border border-white/10 rounded-lg text-sm focus:border-cyan-500/60 focus:outline-none">
+                                    <button id="walletSendMaxBtn" class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-[10px] orbitron font-bold bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 rounded">MAX</button>
+                                </div>
+                            </div>
+                            <div id="walletSendError" class="text-xs text-red-400 hidden"></div>
+                            <button id="walletSendSubmit" class="w-full py-3 rounded-lg orbitron text-xs font-black tracking-widest bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 transition-all">CONFIRM SEND</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="punkswap" class="hidden animate-fade-in">
+            <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden max-w-4xl mx-auto">
+                <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-pink-500/5"></div>
+                <div class="relative z-10">
+                    <div class="w-28 h-28 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-cyan-400 via-purple-600 to-pink-500 flex items-center justify-center text-6xl shadow-[0_0_45px_rgba(6,182,212,0.55)]">
+                        ⚡
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-black mb-4 text-gradient orbitron tracking-tight">PUNKSWAP</h2>
+                    <p class="text-slate-300 max-w-xl mx-auto mb-2 text-base">
+                        The native NFT marketplace for the Keeta network. Trade KeePunks and ecosystem collections with verified on-chain escrow.
+                    </p>
+                    <p class="text-slate-500 max-w-xl mx-auto mb-8 text-sm">
+                        Connect your wallet, browse collections, mint blind drops, place offers, list items and join the Punk Festival — all from one place.
+                    </p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 max-w-3xl mx-auto">
+                        <button onclick="launchPunkSwap('tab-market')" class="glass-card p-4 hover:border-cyan-500 transition-all group cursor-pointer">
+                            <div class="text-3xl mb-2">🛒</div>
+                            <div class="orbitron text-xs font-bold text-white group-hover:text-cyan-400">Marketplace</div>
+                        </button>
+                        <button onclick="launchPunkSwap('tab-mystery-loot')" class="glass-card p-4 hover:border-purple-500 transition-all group cursor-pointer">
+                            <div class="text-3xl mb-2">🎁</div>
+                            <div class="orbitron text-xs font-bold text-white group-hover:text-purple-400">Mystery Loot</div>
+                        </button>
+                        <button onclick="launchPunkSwap('tab-festival')" class="glass-card p-4 hover:border-pink-500 transition-all group cursor-pointer">
+                            <div class="text-3xl mb-2">🎪</div>
+                            <div class="orbitron text-xs font-bold text-white group-hover:text-pink-400">Punk Festival</div>
+                        </button>
+                        <button onclick="launchPunkSwap('tab-collection')" class="glass-card p-4 hover:border-amber-500 transition-all group cursor-pointer">
+                            <div class="text-3xl mb-2">🔐</div>
+                            <div class="orbitron text-xs font-bold text-white group-hover:text-amber-400">My Vault</div>
+                        </button>
+                    </div>
+
+                    <button onclick="launchPunkSwap()" class="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-black px-10 py-4 rounded-xl orbitron text-sm uppercase tracking-widest shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all">
+                        Launch PunkSwap →
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= GRIDLANDS TAB ================= -->
+        <section id="gridlands" class="hidden glass-card p-16 text-center relative overflow-hidden max-w-4xl mx-auto">
+            <h2 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 mb-4">GRIDLANDS</h2>
+            <p class="text-slate-400 max-w-xl mx-auto mb-6 text-sm">The native strategical matrix gaming module powering ecosystem asset utility across Keeta. Connect portal node to sequence.</p>
+            <button class="bg-yellow-500 text-black font-extrabold px-8 py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)]">Initialize Node Arena</button>
+        </section>
+
+        <!-- ================= WHITEPAPER TAB ================= -->
+        <section id="whitepaper" class="hidden glass-card p-10 max-w-4xl mx-auto space-y-6">
+            <h2 class="text-3xl font-black text-gradient uppercase">System Specifications</h2>
+            <p class="text-slate-300 leading-relaxed text-sm font-light">
+                Punk Portal aggregates consensus-level asset distributions, native Automated Market Maker volumes, and smart contract transactions across the Keeta processing layers.
+            </p>
+        </section>
+    </main>
+
+    <!-- ─── NFT preview modal (collection click) ─── -->
+    <div id="nftModal" class="modal-overlay" onclick="if(event.target===this)closeNFTModal()">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeNFTModal()" aria-label="Close">×</button>
+            <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6 pr-12">
+                <div id="modalColImage" class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border border-cyan-500/30 flex items-center justify-center text-3xl flex-shrink-0">🎲</div>
+                <div class="flex-1 min-w-0">
+                    <h2 id="modalColTitle" class="text-2xl md:text-3xl font-black text-white orbitron tracking-tight">Collection</h2>
+                    <p id="modalColDesc" class="text-sm text-slate-400 mt-1 line-clamp-2">Loading…</p>
+                </div>
+                <button onclick="modalOpenInPunkSwap()" class="bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 px-4 py-2 rounded-lg orbitron text-xs uppercase tracking-widest font-bold transition-all whitespace-nowrap">
+                    Trade on PunkSwap →
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="glass-card p-3">
+                    <p class="text-[10px] text-slate-500 orbitron uppercase tracking-wider">Floor</p>
+                    <p class="text-lg font-black text-cyan-400" id="modalFloor">—</p>
+                </div>
+                <div class="glass-card p-3">
+                    <p class="text-[10px] text-slate-500 orbitron uppercase tracking-wider">Supply</p>
+                    <p class="text-lg font-black text-white" id="modalSupply">—</p>
+                </div>
+                <div class="glass-card p-3">
+                    <p class="text-[10px] text-slate-500 orbitron uppercase tracking-wider">Minted</p>
+                    <p class="text-lg font-black text-purple-400" id="modalMinted">—</p>
+                </div>
+                <div class="glass-card p-3">
+                    <p class="text-[10px] text-slate-500 orbitron uppercase tracking-wider">Volume</p>
+                    <p class="text-lg font-black text-pink-400" id="modalVolume">—</p>
+                </div>
+            </div>
+
+            <h3 class="text-sm orbitron font-bold text-cyan-400 uppercase tracking-widest mb-3">Random sample · 20 NFTs</h3>
+            <div id="modalNFTGrid" class="nft-grid">
+                <!-- skeletons -->
+                <div class="nft-tile"><div class="nft-tile-img skeleton"></div><div class="nft-tile-name skeleton h-4 my-2 mx-2 rounded"></div></div>
+                <div class="nft-tile"><div class="nft-tile-img skeleton"></div><div class="nft-tile-name skeleton h-4 my-2 mx-2 rounded"></div></div>
+                <div class="nft-tile"><div class="nft-tile-img skeleton"></div><div class="nft-tile-name skeleton h-4 my-2 mx-2 rounded"></div></div>
+                <div class="nft-tile"><div class="nft-tile-img skeleton"></div><div class="nft-tile-name skeleton h-4 my-2 mx-2 rounded"></div></div>
+            </div>
+            <p id="modalNFTEmpty" class="hidden text-center text-slate-500 py-8 text-sm">No NFTs found yet for this collection.</p>
+        </div>
+    </div>
+
+    <!-- ─── Firebase + App logic ─── -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, limit, getDocs }
+            from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // SAME Firebase project as PunkSwap — read-only client
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe_G4Es-1UrPx_0unnByq2VsiSEKRj0GU",
+            authDomain: "punkswap-production.firebaseapp.com",
+            projectId: "punkswap-production",
+            storageBucket: "punkswap-production.firebasestorage.app",
+            messagingSenderId: "897835219222",
+            appId: "1:897835219222:web:a65f92db25cd8861d0b837"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getFirestore(app);
+
+        // Expose for non-module code below
+        window._fb = { db, collection, query, where, orderBy, limit, getDocs };
+    </script>
+
+    <script>
+        // ═════════════════════════════════════════════════════════════════
+        // PUNKSWAP DEEP-LINK CONFIG — set this to your live PunkSwap URL
+        // ═════════════════════════════════════════════════════════════════
+        const PUNKSWAP_URL = 'https://punkswap.app'; // ← change if your domain differs
+
+        function launchPunkSwap(tabId) {
+            // Opens PunkSwap in a new tab. If a tab id like 'tab-festival' or
+            // 'tab-market' is passed, we append it as a hash so PunkSwap (which
+            // reads window.location.hash on load) jumps straight there.
+            const url = tabId
+                ? `${PUNKSWAP_URL}/#${tabId}`
+                : PUNKSWAP_URL;
+            window.open(url, '_blank', 'noopener');
+        }
+        window.launchPunkSwap = launchPunkSwap;
+
+        // ─── Tab switching ───
+        function showPage(id, btn) {
+            ['home', 'marketplace', 'wallet', 'punkswap', 'gridlands', 'whitepaper'].forEach(p => {
+                const el = document.getElementById(p);
+                if (el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(id);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Wallet page: lazy-init the wallet module the first time it's opened
+            if (id === 'wallet' && typeof window._initWalletPage === 'function') {
+                try { window._initWalletPage(); } catch(e) { console.error('[wallet init]', e); }
+            }
+        }
+        window.showPage = showPage;
+
+        // ─── Timeframe pills ───
+        const timeframes = ['24hr', '7day', '30day', '90day', '1yr', 'all'];
+        function fillTimeframes(containerId, color, onSelect) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            timeframes.forEach(tf => {
+                const btn = document.createElement('button');
+                const isActive = tf === '7day';
+                btn.className = isActive
+                    ? `px-2.5 py-1 rounded transition-all border bg-${color}-500/10 text-${color}-400 border-${color}-500/30`
+                    : 'px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white';
+                btn.textContent = tf;
+                btn.onclick = () => {
+                    container.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white';
+                    });
+                    btn.className = `px-2.5 py-1 rounded transition-all border bg-${color}-500/10 text-${color}-400 border-${color}-500/30`;
+                    onSelect(tf);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // ─── Chart.js defaults ───
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+
+        // Helpers
+        const fmt = (n, dec = 0) => {
+            if (n == null || isNaN(n)) return '—';
+            if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+            if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+            return n.toFixed(dec);
+        };
+        const fmtFull = n => (n == null || isNaN(n)) ? '—' : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+        // Wait for Firebase module init (may be after DOMContentLoaded)
+        function waitForFb(timeoutMs = 8000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                (function poll() {
+                    if (window._fb) return resolve(window._fb);
+                    if (Date.now() - start > timeoutMs) return reject(new Error('Firebase init timeout'));
+                    setTimeout(poll, 50);
+                })();
+            });
+        }
+
+        // ─── PunkSwap-style collection card ───
+        const getRandomDiceImage = (id) => {
+            // Mirrors PunkSwap fallback — deterministic dice emoji set
+            const dice = ['🎲','🎰','🎯','💎','⚡','🔮','👾','🎪'];
+            const idx = (id || '').split('').reduce((s, c) => s + c.charCodeAt(0), 0) % dice.length;
+            return null; // use emoji fallback instead of dice image
+        };
+
+        const IPFS_GATEWAYS = [
+            'https://ipfs.io/ipfs/',
+            'https://w3s.link/ipfs/',
+            'https://dweb.link/ipfs/',
+            'https://gateway.pinata.cloud/ipfs/',
+            'https://gateway.lighthouse.storage/ipfs/'
+        ];
+
+        // Extract a bare IPFS path (CID, or CID/file.png) from any raw image
+        // identifier we might find on a collection or NFT doc.
+        //  - ipfs://CID/x.png → "CID/x.png"
+        //  - https://gateway.../ipfs/CID/x.png → "CID/x.png"
+        //  - bare CID → "CID"
+        //  - any other URL → null (we can't gateway-fallback it)
+        function extractIpfsPath(raw) {
+            if (!raw) return null;
+            const s = String(raw).trim();
+            if (!s) return null;
+            if (s.startsWith('ipfs://')) return s.slice(7);
+            // Any URL containing /ipfs/<...>
+            const m = s.match(/\/ipfs\/(.+)$/);
+            if (m) return m[1];
+            // Bare CID (v0 starts with Qm, v1 with bafy/bafk/etc.)
+            if (/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[0-9a-z]{55,}|bafk[0-9a-z]{55,}|baf[a-z0-9]{55,})/i.test(s)) return s;
+            if (/^[a-z0-9]{40,}(\/.+)?$/i.test(s)) return s;
+            return null;
+        }
+
+        // Build an <img> tag string with a chained gateway-retry onerror
+        // handler. If all gateways fail, displays the emoji fallback.
+        //
+        //   buildImgWithFallback({ raw, alt, className, fallbackEmoji, style })
+        //
+        // raw may be a full URL (used as-is, no chain) OR an IPFS-shaped id
+        // (any of ipfs://CID, gateway URL, bare CID). When it's an IPFS id,
+        // we use IPFS_GATEWAYS[0] first and fall through to 1, 2, ... on each
+        // onerror.
+        function buildImgWithFallback({ raw, alt = '', className = '', fallbackEmoji = '👾', style = '' }) {
+            const path = extractIpfsPath(raw);
+            const safeAlt = String(alt || '').replace(/"/g, '&quot;');
+            const escape = (s) => String(s).replace(/'/g, '\\\'');
+
+            // Non-IPFS URLs: use as-is, single fallback
+            if (!path && raw && /^https?:\/\//.test(raw)) {
+                const onerr = `this.style.display='none';if(this.parentElement){this.parentElement.dataset.imgFailed='1';}`;
+                return `<img src="${escape(raw)}" alt="${safeAlt}" loading="lazy" class="${className}" style="${style}" onerror="${onerr}" />`;
+            }
+
+            // No usable image source → return inline emoji
+            if (!path) {
+                return `<div class="${className}" style="${style};display:flex;align-items:center;justify-content:center;font-size:3rem;opacity:0.45;">${fallbackEmoji}</div>`;
+            }
+
+            // IPFS path: walk gateways. Each step: increment dataset.gwIdx, set src to next gateway.
+            // After last gateway: hide self.
+            const urls = IPFS_GATEWAYS.map((g) => g + path);
+            // Build a single onerror that uses dataset.gwIdx to walk the list
+            const urlsJson = JSON.stringify(urls).replace(/"/g, '&quot;');
+            const onerr =
+                `var i=parseInt(this.dataset.gwIdx||'0',10)+1;` +
+                `var list=${urlsJson};` +
+                `if(i<list.length){this.dataset.gwIdx=String(i);this.src=list[i];}` +
+                `else{this.onerror=null;this.style.display='none';if(this.parentElement)this.parentElement.dataset.imgFailed='1';}`;
+
+            return `<img src="${escape(urls[0])}" alt="${safeAlt}" loading="lazy" class="${className}" style="${style}" data-gw-idx="0" onerror="${onerr}" />`;
+        }
+
+        function resolveImageURL(raw) {
+            // Kept for back-compat with anything still calling it
+            if (!raw) return null;
+            if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+            const path = extractIpfsPath(raw);
+            return path ? IPFS_GATEWAYS[0] + path : raw;
+        }
+
+        // Returns a RAW image identifier (CID, IPFS path, or full URL) — NOT
+        // a pre-baked gateway URL. Caller passes this to buildImgWithFallback
+        // which decides the gateway and handles retries.
+        function resolveCollectionImage(col, sampleNFTs) {
+            // 1) explicit preview/thumbnail on collection doc
+            if (col.previewImageUrl)         return col.previewImageUrl;     // full URL — used as-is
+            if (col.collectionThumbnailCid)  return col.collectionThumbnailCid;
+            if (col.collectionThumbnail)     return col.collectionThumbnail;
+
+            // 2) build from ipfsCid + first scanned file → return as "CID/path"
+            if (col.ipfsCid && col.scannedFiles && col.scannedFiles[0]) {
+                let sf = col.scannedFiles[0].replace('.json', '.png');
+                return sf.includes('/') ? `${col.ipfsCid}/${sf}` : `${col.ipfsCid}/images/${sf}`;
+            }
+
+            // 3) first minted NFT's image
+            if (sampleNFTs && sampleNFTs.length) {
+                const n = sampleNFTs[0];
+                return n.imagePath || n.image || n.imageUrl || n.thumbnailCid || null;
+            }
+            return null;
+        }
+
+        function safeText(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+
+        function renderCollectionCard(col, stats) {
+            const img = resolveCollectionImage(col);
+            const floor = stats?.floor;
+            const vol   = stats?.volume;
+            const isBlind = !!col.blindMintEnabled;
+            const isVerified = col.isVerified || col.verified;
+            const fallbackEmoji = isBlind ? '🎲' : '👾';
+
+            const imgHtml = img
+                ? buildImgWithFallback({
+                    raw: img,
+                    alt: col.collectionTitle || 'Collection',
+                    fallbackEmoji,
+                  })
+                : '';
+
+            const card = document.createElement('div');
+            card.className = 'col-card';
+            card.dataset.colId = col.collectionId || col.id || '';
+            card.innerHTML = `
+                <div class="col-card-img">
+                    ${imgHtml}
+                    <div class="fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4rem;opacity:0.45;pointer-events:none;${img ? 'display:none;' : ''}">${fallbackEmoji}</div>
+                    ${isBlind ? '<div class="blind-badge">🎲 BLIND MINT</div>' : ''}
+                    ${isVerified ? '<div class="verified-badge">✓ VERIFIED</div>' : ''}
+                </div>
+                <div class="col-card-body">
+                    <h3 class="col-card-title">${safeText(col.collectionTitle || col.collectionName || 'Untitled')}</h3>
+                    <p class="col-card-desc">${safeText(col.collectionDesc || 'No description available.')}</p>
+                    <div class="col-card-stats">
+                        <div>
+                            <span class="lbl">Floor</span>
+                            <span class="val">${floor != null ? fmt(floor, 2) + ' KTA' : '—'}</span>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="lbl">Volume</span>
+                            <span class="val-pink">${vol != null ? fmt(vol) + ' KTA' : '—'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => openCollectionModal(col, stats);
+            return card;
+        }
+
+        // ─── State buckets ───
+        const portal = {
+            collections: [],
+            nftCountsByCollection: {},
+            statsByCollection: {},
+            transactions: [],   // last N transactions for charting + stats
+            charts: { swap: null, coin: null },
+            currentChartRange: '7day',
+            modalColId: null,
+        };
+
+        // ─── Load collections ───
+        async function loadCollections() {
+            const fb = await waitForFb();
+            const snap = await fb.getDocs(fb.collection(fb.db, 'collections'));
+            const list = [];
+            snap.forEach(d => {
+                const c = { id: d.id, collectionId: d.id, ...d.data() };
+                // Mirror PunkSwap filter rules
+                if (c.cancelled === true) return;
+                if (c.hidden === true) return;
+                list.push(c);
+            });
+            // Sort by mintedCount desc (most active first)
+            list.sort((a, b) => (b.mintedCount || 0) - (a.mintedCount || 0));
+            portal.collections = list;
+            return list;
+        }
+
+        // ─── Load recent transactions (drives charts + stats) ───
+        async function loadTransactions() {
+            const fb = await waitForFb();
+            try {
+                // Last 1000 transactions ordered by timestamp desc
+                const q = fb.query(
+                    fb.collection(fb.db, 'transactions'),
+                    fb.orderBy('timestamp', 'desc'),
+                    fb.limit(5000)
+                );
+                const snap = await fb.getDocs(q);
+                const txs = [];
+                snap.forEach(d => txs.push({ id: d.id, ...d.data() }));
+                portal.transactions = txs;
+                return txs;
+            } catch (e) {
+                console.warn('[Portal] transactions load failed:', e.message);
+                // Fallback without orderBy in case index missing
+                try {
+                    const snap = await fb.getDocs(fb.query(fb.collection(fb.db, 'transactions'), fb.limit(5000)));
+                    const txs = [];
+                    snap.forEach(d => txs.push({ id: d.id, ...d.data() }));
+                    portal.transactions = txs;
+                    return txs;
+                } catch (e2) {
+                    console.error('[Portal] tx fallback failed:', e2.message);
+                    portal.transactions = [];
+                    return [];
+                }
+            }
+        }
+
+        // ─── Load NFT docs (drives active-listings + unique-holders stats) ───
+        // We can't pull the entire nfts collection on every refresh — it could
+        // be huge. Two targeted queries: (a) listed NFTs only, (b) distinct
+        // owners. Both stream via batched queries so we stay efficient.
+        async function loadNFTStats() {
+            const fb = await waitForFb();
+            try {
+                // (a) Active listings — only docs where isListed === true
+                let activeListings = 0;
+                try {
+                    const listedSnap = await fb.getDocs(fb.query(
+                        fb.collection(fb.db, 'nfts'),
+                        fb.where('isListed', '==', true)
+                    ));
+                    activeListings = listedSnap.size;
+                } catch (e) { /* index may be missing — fall through silently */ }
+
+                // (b) Unique NFT-holding wallets. We sample the full nfts collection
+                // (capped) and tally distinct, non-escrow owners. Escrow holds listings
+                // so it isn't a real holder.
+                const ESCROW = 'keeta_aabp2fceji4jhokjktgjcrsvn4whqipccqfcbk2ojoe7x2xbionukytbh567xoy';
+                let totalNFTs = 0;
+                const holders = new Set();
+                try {
+                    const nftSnap = await fb.getDocs(fb.query(
+                        fb.collection(fb.db, 'nfts'),
+                        fb.limit(5000)
+                    ));
+                    nftSnap.forEach(d => {
+                        const n = d.data() || {};
+                        totalNFTs++;
+                        const owner = (n.owner || '').toString();
+                        if (owner && owner !== ESCROW) holders.add(owner.toLowerCase());
+                    });
+                } catch (e) { /* non-fatal */ }
+
+                portal.nftStats = { activeListings, holders: holders.size, totalNFTs };
+                return portal.nftStats;
+            } catch (e) {
+                console.warn('[Portal] loadNFTStats failed:', e.message);
+                portal.nftStats = { activeListings: 0, holders: 0, totalNFTs: 0 };
+                return portal.nftStats;
+            }
+        }
+
+        // ─── Compute global stats from collections + transactions ───
+        function computeGlobalStats() {
+            const cols = portal.collections;
+            const txs  = portal.transactions;
+
+            let totalNFTsMinted = 0;
+            cols.forEach(c => { totalNFTsMinted += (c.mintedCount || 0); });
+
+            // Volumes & per-collection stats from transactions
+            // PunkSwap transaction schema:
+            //   type:    'sale'|'purchase'|'auction_sale'|'auction_purchase'|'mint'|'listing'|'cancellation'
+            //   wallet:  the acting wallet (seller on sale, buyer on purchase)
+            //   counterParty: the other side (buyer on sale, seller on purchase)
+            //   currency: 'KTA'|'PUNKS'
+            //   price: number
+            let ktaVolume = 0;
+            let punksVolume = 0;
+            const wallets = new Set();
+            const perCol = {};
+            txs.forEach(tx => {
+                const type = tx.type;
+                const isTrade = ['sale', 'purchase', 'auction_sale', 'auction_purchase', 'mint'].includes(type);
+                if (!isTrade) return;
+
+                // Count sale + purchase pairs only once (each trade writes two docs:
+                // one from seller's perspective, one from buyer's). 'sale' is seller-side,
+                // 'purchase' is buyer-side — they have the same nftId+txHash. Use 'sale'
+                // and 'mint' and 'auction_sale' as the canonical side; skip 'purchase'
+                // and 'auction_purchase' to avoid double-counting.
+                if (type === 'purchase' || type === 'auction_purchase') {
+                    // Still capture wallet for unique-trader count, but don't add volume
+                    if (tx.wallet) wallets.add(String(tx.wallet).toLowerCase());
+                    if (tx.counterParty) wallets.add(String(tx.counterParty).toLowerCase());
+                    return;
+                }
+
+                const price = parseFloat(tx.price) || 0;
+                if (price > 0) {
+                    if (tx.currency === 'PUNKS') punksVolume += price;
+                    else ktaVolume += price;
+                }
+                if (tx.wallet) wallets.add(String(tx.wallet).toLowerCase());
+                if (tx.counterParty) wallets.add(String(tx.counterParty).toLowerCase());
+
+                const cid = tx.collectionId;
+                if (cid) {
+                    if (!perCol[cid]) perCol[cid] = { volume: 0, floor: null, sales: 0 };
+                    if (price > 0 && tx.currency !== 'PUNKS') perCol[cid].volume += price;
+                    if (price > 0 && tx.currency !== 'PUNKS') {
+                        if (perCol[cid].floor == null || price < perCol[cid].floor) perCol[cid].floor = price;
+                    }
+                    perCol[cid].sales++;
+                }
+            });
+
+            // Floors also from currently listed prices on collection docs
+            cols.forEach(c => {
+                const cid = c.collectionId;
+                if (!perCol[cid]) perCol[cid] = { volume: 0, floor: null, sales: 0 };
+                if (c.priceKTA && (perCol[cid].floor == null || c.priceKTA < perCol[cid].floor)) {
+                    perCol[cid].floor = c.priceKTA;
+                }
+            });
+            portal.statsByCollection = perCol;
+
+            // Global lowest floor
+            let lowestFloor = null;
+            Object.values(perCol).forEach(s => {
+                if (s.floor != null && (lowestFloor == null || s.floor < lowestFloor)) lowestFloor = s.floor;
+            });
+
+            // Active listings come from the nfts collection (not transactions).
+            // Holders also come from nfts. Both are loaded by loadNFTStats().
+            const nftStats = portal.nftStats || { activeListings: 0, holders: 0 };
+            const activeListings = nftStats.activeListings;
+
+            return {
+                totalNFTsMinted,
+                ktaVolume,
+                punksVolume,
+                collections: cols.length,
+                wallets: wallets.size,           // unique trading wallets (from tx history)
+                holders: nftStats.holders,       // unique wallets currently holding an NFT
+                lowestFloor,
+                activeListings
+            };
+        }
+
+        // ─── Update DOM stats ───
+        function paintGlobalStats(g) {
+            // Home tab
+            document.getElementById('statTotalVolume').innerHTML = `${fmt(g.ktaVolume, 2)} <span class="text-purple-400 text-lg font-bold">KTA</span>`;
+            document.getElementById('statTotalVolumePunks').textContent = `${fmt(g.punksVolume, 0)} PUNKS traded`;
+            document.getElementById('statPunksCirc').textContent = fmt(g.punksVolume) || '—';
+            document.getElementById('statPunksFloor').textContent = g.lowestFloor != null
+                ? `Lowest NFT floor: ${fmt(g.lowestFloor, 2)} KTA`
+                : 'Lowest NFT floor: —';
+            document.getElementById('statTotalNFTs').textContent = fmtFull(g.totalNFTsMinted);
+            document.getElementById('statActiveListings').textContent = fmtFull(g.activeListings);
+            document.getElementById('statCollections').textContent = fmtFull(g.collections);
+            document.getElementById('statUniqueWallets').textContent = fmtFull(g.wallets);
+            const holdersEl = document.getElementById('statHolders');
+            if (holdersEl) holdersEl.textContent = fmtFull(g.holders || 0);
+
+            // Marketplace tab
+            document.getElementById('mpTotalVolume').innerHTML = `${fmt(g.ktaVolume, 2)} <span class="text-cyan-400 text-sm">KTA</span>`;
+            document.getElementById('mpItemsListed').innerHTML = `${fmtFull(g.activeListings)} <span class="text-purple-400 text-sm">NFTs</span>`;
+            document.getElementById('mpFloor').innerHTML = g.lowestFloor != null
+                ? `${fmt(g.lowestFloor, 2)} <span class="text-pink-400 text-sm">KTA</span>`
+                : `— <span class="text-pink-400 text-sm">KTA</span>`;
+            document.getElementById('mpUniqueWallets').innerHTML = `${fmtFull(g.wallets)} <span class="text-yellow-400 text-sm">Users</span>`;
+        }
+
+        // ─── Charts ───
+        function txTimestampMs(tx) {
+            if (!tx.timestamp) return null;
+            if (typeof tx.timestamp === 'string') return new Date(tx.timestamp).getTime();
+            if (tx.timestamp.toMillis) return tx.timestamp.toMillis();
+            if (tx.timestamp.seconds) return tx.timestamp.seconds * 1000;
+            return null;
+        }
+
+        function buildSeriesByDay(txs, daysBack, filterFn) {
+            const buckets = {};
+            const counts  = {};
+            const now = Date.now();
+            const dayMs = 86400000;
+            for (let i = daysBack - 1; i >= 0; i--) {
+                const d = new Date(now - i * dayMs);
+                const key = d.toISOString().slice(0, 10);
+                buckets[key] = 0;
+                counts[key]  = 0;
+            }
+            txs.forEach(tx => {
+                if (!filterFn(tx)) return;
+                const ts = txTimestampMs(tx);
+                if (!ts || (now - ts) > daysBack * dayMs) return;
+                const key = new Date(ts).toISOString().slice(0, 10);
+                if (buckets[key] != null) {
+                    buckets[key] += parseFloat(tx.price) || 0;
+                    counts[key]++;
+                }
+            });
+            return {
+                labels: Object.keys(buckets).map(d => d.slice(5)), // MM-DD
+                values: Object.values(buckets),
+                counts: Object.values(counts)
+            };
+        }
+
+        function rangeToDays(r) {
+            return { '24hr': 1, '7day': 7, '30day': 30, '90day': 90, '1yr': 365, 'all': 365 }[r] || 7;
+        }
+
+        // ─── PunkSwap-style chart renderer ─────────────────────────
+        // Matches the look of state.pulseChart in PunkSwap: cyan/purple
+        // glow on the line, depth shadow underneath, volume bars on a
+        // secondary axis, watermark, gold ticks, fira-code labels.
+        function renderPunkStyleChart(opts) {
+            const { canvasId, prevChartKey, series, colorMain, colorShadow, watermarkText, unitLabel } = opts;
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const h = canvas.clientHeight || 260;
+
+            const gradMain = ctx.createLinearGradient(0, 0, 0, h);
+            gradMain.addColorStop(0,   colorMain.replace('0)', '0.55)'));
+            gradMain.addColorStop(0.4, colorMain.replace('0)', '0.20)'));
+            gradMain.addColorStop(1,   colorMain.replace('0)', '0.00)'));
+
+            const gradShadow = ctx.createLinearGradient(0, 10, 0, h + 10);
+            gradShadow.addColorStop(0, colorShadow.replace('0)', '0.30)'));
+            gradShadow.addColorStop(1, colorShadow.replace('0)', '0.00)'));
+
+            const gradVol = ctx.createLinearGradient(0, 0, 0, h);
+            gradVol.addColorStop(0, colorMain.replace('0)', '0.25)'));
+            gradVol.addColorStop(1, colorMain.replace('0)', '0.02)'));
+
+            if (portal.charts[prevChartKey]) portal.charts[prevChartKey].destroy();
+
+            const lineColor = colorMain.replace('0)', '1)');
+            const points = series.values.length;
+            const showPoints = points <= 30;
+
+            portal.charts[prevChartKey] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: series.labels,
+                    datasets: [
+                        // Shadow depth layer (under main line)
+                        {
+                            label: '_shadow',
+                            data: series.values,
+                            borderColor: 'rgba(0,0,0,0)',
+                            backgroundColor: gradShadow,
+                            borderWidth: 0,
+                            tension: 0.45,
+                            fill: true,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            yAxisID: 'y',
+                            order: 3,
+                        },
+                        // Main glow line
+                        {
+                            label: unitLabel,
+                            data: series.values,
+                            borderColor: lineColor,
+                            backgroundColor: gradMain,
+                            borderWidth: 2.5,
+                            tension: 0.45,
+                            fill: true,
+                            pointRadius: showPoints ? 3 : 0,
+                            pointBackgroundColor: lineColor,
+                            pointBorderColor: 'rgba(255,255,255,0.8)',
+                            pointBorderWidth: 1.5,
+                            pointHoverRadius: 7,
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: lineColor,
+                            pointHoverBorderWidth: 2.5,
+                            borderCapStyle: 'round',
+                            borderJoinStyle: 'round',
+                            yAxisID: 'y',
+                            order: 1,
+                        },
+                        // Volume / trade-count bars
+                        {
+                            label: 'Trades',
+                            data: series.counts || [],
+                            type: 'bar',
+                            backgroundColor: gradVol,
+                            borderColor: colorMain.replace('0)', '0.35)'),
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            yAxisID: 'yVol',
+                            barPercentage: 0.7,
+                            order: 2,
+                        }
+                    ]
+                },
+                plugins: [{
+                    id: 'punkstyleGlow',
+                    beforeDatasetsDraw(chart) {
+                        chart.ctx.save();
+                        chart.ctx.shadowBlur  = 20;
+                        chart.ctx.shadowColor = colorMain.replace('0)', '0.65)');
+                    },
+                    afterDatasetsDraw(chart) { chart.ctx.restore(); }
+                }, {
+                    id: 'punkstyleWatermark',
+                    beforeDraw(chart) {
+                        const cctx = chart.ctx;
+                        const ca = chart.chartArea;
+                        if (!ca) return;
+                        const cx = ca.left + (ca.right - ca.left) / 2;
+                        const cy = ca.top + (ca.bottom - ca.top) / 2;
+                        const fontSize = Math.min((ca.right - ca.left) * 0.13, 44);
+                        cctx.save();
+                        cctx.globalAlpha = 0.045;
+                        const ff = document.fonts?.check(`900 ${fontSize}px Orbitron`) ? 'Orbitron' : 'Arial Black, sans-serif';
+                        cctx.font = `900 ${fontSize}px ${ff}`;
+                        cctx.fillStyle = '#7c3aed';
+                        cctx.textAlign = 'center';
+                        cctx.textBaseline = 'middle';
+                        cctx.fillText(watermarkText, cx, cy);
+                        cctx.restore();
+                    }
+                }],
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    animation: { duration: 500, easing: 'easeInOutQuart' },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(4,4,18,0.97)',
+                            titleColor: lineColor,
+                            bodyColor: '#e2e8f0',
+                            borderColor: colorMain.replace('0)', '0.5)'),
+                            borderWidth: 1,
+                            padding: 14,
+                            cornerRadius: 10,
+                            displayColors: false,
+                            filter: (item) => item.dataset.label !== '_shadow',
+                            callbacks: {
+                                label: (item) => {
+                                    if (item.dataset.label === '_shadow') return null;
+                                    if (item.dataset.label === 'Trades') return ` ${item.parsed.y} trades`;
+                                    return ` ${fmt(item.parsed.y, 2)} ${unitLabel}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: colorMain.replace('0)', '0.04)'), drawBorder: false },
+                            ticks: {
+                                color: '#555',
+                                font: { family: 'Fira Code', size: 9 },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                autoSkipPadding: 20,
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            beginAtZero: true,
+                            grid: { color: colorMain.replace('0)', '0.07)'), drawBorder: false },
+                            ticks: {
+                                color: '#d4a017',
+                                font: { family: 'Fira Code', size: 10, weight: 'bold' },
+                                maxTicksLimit: 6,
+                                callback: (v) => {
+                                    if (v === 0) return '0';
+                                    if (v < 1) return v.toFixed(2);
+                                    if (v < 10) return v.toFixed(1);
+                                    return fmt(v);
+                                }
+                            }
+                        },
+                        yVol: {
+                            position: 'right',
+                            display: false,
+                            grid: { display: false },
+                            beginAtZero: true,
+                            max: Math.max(...(series.counts || [0]), 1) * 4
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSwapChart(range) {
+            const days = rangeToDays(range);
+            const series = buildSeriesByDay(portal.transactions, days, tx =>
+                ['sale','auction_sale','mint'].includes(tx.type) && tx.currency !== 'PUNKS' && (parseFloat(tx.price) || 0) > 0
+            );
+            renderPunkStyleChart({
+                canvasId: 'swapChart',
+                prevChartKey: 'swap',
+                series,
+                colorMain: 'rgba(0, 255, 255, 0)',
+                colorShadow: 'rgba(0, 120, 140, 0)',
+                watermarkText: 'PUNKSWAP',
+                unitLabel: 'KTA'
+            });
+        }
+
+        function renderCoinChart(range) {
+            const days = rangeToDays(range);
+            const series = buildSeriesByDay(portal.transactions, days, tx =>
+                ['sale','auction_sale','mint'].includes(tx.type) && tx.currency === 'PUNKS'
+            );
+            renderPunkStyleChart({
+                canvasId: 'coinChart',
+                prevChartKey: 'coin',
+                series,
+                colorMain: 'rgba(168, 85, 247, 0)',
+                colorShadow: 'rgba(80, 30, 120, 0)',
+                watermarkText: '$PUNKS',
+                unitLabel: 'PUNKS'
+            });
+        }
+
+        // ─── Live transactions feed ────────────────────────────
+        portal.feedFilter = 'all';
+
+        function feedItemBadge(tx) {
+            const t = (tx.type || '').toLowerCase();
+            const map = {
+                sale:             ['bg-emerald-500/15 text-emerald-300 border-emerald-500/40', 'SALE'],
+                purchase:         ['bg-emerald-500/15 text-emerald-300 border-emerald-500/40', 'BUY'],
+                auction_sale:     ['bg-amber-500/15 text-amber-300 border-amber-500/40',   'AUCTION'],
+                auction_purchase: ['bg-amber-500/15 text-amber-300 border-amber-500/40',   'AUCTION BUY'],
+                mint:             ['bg-cyan-500/15 text-cyan-300 border-cyan-500/40',      'MINT'],
+                listing:          ['bg-purple-500/15 text-purple-300 border-purple-500/40','LIST'],
+                cancellation:     ['bg-slate-500/15 text-slate-300 border-slate-500/40',   'CANCEL'],
+            };
+            const [cls, label] = map[t] || ['bg-slate-500/15 text-slate-300 border-slate-500/40', t.toUpperCase() || 'TX'];
+            return `<span class="px-2 py-0.5 rounded text-[10px] orbitron font-black tracking-widest border ${cls}">${label}</span>`;
+        }
+
+        function timeAgo(ms) {
+            if (!ms) return '—';
+            const diff = (Date.now() - ms) / 1000;
+            if (diff < 60)   return `${Math.floor(diff)}s ago`;
+            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+            if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
+            return `${Math.floor(diff/86400)}d ago`;
+        }
+
+        function shortAddr(a) {
+            if (!a) return '';
+            const s = String(a);
+            if (s.length < 14) return s;
+            return s.slice(0, 8) + '…' + s.slice(-4);
+        }
+
+        function renderLiveFeed() {
+            const container = document.getElementById('liveFeed');
+            if (!container) return;
+            const txs = portal.transactions || [];
+            if (!txs.length) {
+                container.innerHTML = '<p class="text-center text-slate-500 mono text-xs py-8">No transactions to display yet.</p>';
+                return;
+            }
+
+            // Filter: dedupe sale/purchase pairs by nftId+txHash so the feed reads as ONE row per trade
+            const seen = new Set();
+            const filtered = [];
+            for (const tx of txs) {
+                const f = portal.feedFilter;
+                const t = tx.type || '';
+                if (f !== 'all') {
+                    if (f === 'sale' && !['sale','auction_sale','purchase','auction_purchase'].includes(t)) continue;
+                    if (f === 'mint' && t !== 'mint') continue;
+                    if (f === 'listing' && t !== 'listing') continue;
+                }
+                // Skip the buyer-side dupe — keep sale/auction_sale as canonical when we can
+                const dedupeKey = (tx.txHash || tx.id) + ':' + (tx.nftId || '');
+                if (['purchase','auction_purchase'].includes(t)) {
+                    // If the matching sale doc is also in the list, skip this dupe
+                    const hasMatchingSale = txs.some(o =>
+                        ((o.txHash && o.txHash === tx.txHash) || (o.nftId && o.nftId === tx.nftId && Math.abs((txTimestampMs(o)||0) - (txTimestampMs(tx)||0)) < 10000)) &&
+                        (o.type === 'sale' || o.type === 'auction_sale')
+                    );
+                    if (hasMatchingSale) continue;
+                }
+                if (seen.has(dedupeKey)) continue;
+                seen.add(dedupeKey);
+                filtered.push(tx);
+                if (filtered.length >= 50) break;
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = '<p class="text-center text-slate-500 mono text-xs py-8">No transactions match this filter.</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(tx => {
+                const ts = txTimestampMs(tx);
+                const price = parseFloat(tx.price) || 0;
+                const priceTxt = price > 0
+                    ? `<span class="orbitron font-bold ${tx.currency === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300'}">${fmt(price, 4)} ${tx.currency || 'KTA'}</span>`
+                    : '<span class="text-slate-600 mono text-xs">—</span>';
+                const nftName = safeText(tx.nftName || tx.nftId || 'NFT');
+                const wallet = shortAddr(tx.wallet);
+                const counter = tx.counterParty ? `→ ${shortAddr(tx.counterParty)}` : '';
+                const explorerUrl = tx.txHash ? `https://explorer.keeta.com/transaction/${tx.txHash}` : null;
+
+                return `
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 hover:bg-white/[0.04] transition-all">
+                        <div class="flex-shrink-0">${feedItemBadge(tx)}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 text-sm flex-wrap">
+                                <span class="text-white font-medium truncate">${nftName}</span>
+                                ${tx.collection ? `<span class="text-slate-500 text-xs">· ${safeText(tx.collection)}</span>` : ''}
+                            </div>
+                            <div class="text-[11px] mono text-slate-500 mt-0.5">
+                                <span>${wallet}</span> ${counter}
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <div>${priceTxt}</div>
+                            <div class="text-[10px] mono text-slate-500 mt-0.5">${timeAgo(ts)}</div>
+                        </div>
+                        ${explorerUrl ? `<a href="${explorerUrl}" target="_blank" rel="noopener" class="text-cyan-400/40 hover:text-cyan-300 text-xs orbitron font-bold flex-shrink-0" title="View on Keeta Explorer">↗</a>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Wire feed filter pills
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.feed-filter-btn');
+            if (!btn) return;
+            document.querySelectorAll('.feed-filter-btn').forEach(b => {
+                b.className = 'feed-filter-btn px-2.5 py-1 rounded transition-all border border-transparent text-slate-500 hover:text-white';
+            });
+            btn.className = 'feed-filter-btn px-2.5 py-1 rounded transition-all border bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+            portal.feedFilter = btn.dataset.filter || 'all';
+            renderLiveFeed();
+        });
+
+        // ─── Render collection grid ───
+        function paintCollections() {
+            const grid = document.getElementById('collectionsGrid');
+            grid.innerHTML = '';
+            if (!portal.collections.length) {
+                grid.innerHTML = '<p class="col-span-full text-center text-slate-500 py-20 font-mono text-sm">No verified collections found.</p>';
+                return;
+            }
+            portal.collections.forEach(col => {
+                const stats = portal.statsByCollection[col.collectionId] || {};
+                grid.appendChild(renderCollectionCard(col, stats));
+            });
+        }
+
+        // ─── NFT modal ───
+        async function openCollectionModal(col, stats) {
+            const modal = document.getElementById('nftModal');
+            portal.modalColId = col.collectionId;
+
+            // Header
+            const img = resolveCollectionImage(col);
+            const imgEl = document.getElementById('modalColImage');
+            const fallback = col.blindMintEnabled ? '🎲' : '👾';
+            if (img) {
+                imgEl.innerHTML = buildImgWithFallback({
+                    raw: img,
+                    alt: col.collectionTitle || '',
+                    fallbackEmoji: fallback,
+                    style: 'width:100%;height:100%;object-fit:cover;border-radius:0.75rem;',
+                });
+            } else {
+                imgEl.textContent = fallback;
+            }
+            document.getElementById('modalColTitle').textContent = col.collectionTitle || col.collectionName || 'Untitled';
+            document.getElementById('modalColDesc').textContent  = col.collectionDesc || 'No description available.';
+            document.getElementById('modalFloor').textContent    = stats?.floor != null ? fmt(stats.floor, 2) + ' KTA' : '—';
+            document.getElementById('modalSupply').textContent   = fmtFull(col.totalSupply);
+            document.getElementById('modalMinted').textContent   = fmtFull(col.mintedCount);
+            document.getElementById('modalVolume').textContent   = stats?.volume != null ? fmt(stats.volume) + ' KTA' : '—';
+
+            // Reset grid to skeletons
+            const grid = document.getElementById('modalNFTGrid');
+            document.getElementById('modalNFTEmpty').classList.add('hidden');
+            grid.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const t = document.createElement('div');
+                t.className = 'nft-tile';
+                t.innerHTML = '<div class="nft-tile-img skeleton"></div><div class="skeleton" style="height:14px;margin:8px;border-radius:4px;"></div>';
+                grid.appendChild(t);
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Fetch 20 random NFTs from this collection
+            try {
+                const fb = await waitForFb();
+                const q = fb.query(
+                    fb.collection(fb.db, 'nfts'),
+                    fb.where('collectionId', '==', col.collectionId),
+                    fb.limit(80)
+                );
+                const snap = await fb.getDocs(q);
+                const all = [];
+                snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+
+                // Random pick 20
+                const picked = [];
+                const pool = all.slice();
+                while (picked.length < Math.min(20, pool.length)) {
+                    const idx = Math.floor(Math.random() * pool.length);
+                    picked.push(pool.splice(idx, 1)[0]);
+                }
+
+                if (!picked.length) {
+                    grid.innerHTML = '';
+                    document.getElementById('modalNFTEmpty').classList.remove('hidden');
+                    return;
+                }
+
+                grid.innerHTML = '';
+                picked.forEach(n => {
+                    const tile = document.createElement('div');
+                    tile.className = 'nft-tile';
+                    const rawImg = n.image || n.imageUrl || n.imagePath || n.thumbnailCid;
+                    const fallback = col.blindMintEnabled ? '🎲' : '👾';
+                    const imgHtml = rawImg
+                        ? buildImgWithFallback({ raw: rawImg, alt: n.name || '', fallbackEmoji: fallback })
+                        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:2rem;opacity:0.5;">${fallback}</div>`;
+                    const price = n.listedPrice ? `${fmt(n.listedPrice, 2)} ${n.listedCurrency || 'KTA'}` : '';
+                    tile.innerHTML = `
+                        <div class="nft-tile-img">
+                            ${imgHtml}
+                            <div class="tile-fallback" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:2rem;opacity:0.5;pointer-events:none;">${fallback}</div>
+                        </div>
+                        <div class="nft-tile-name">${safeText(n.name || `#${n.mintIndex ?? '?'}`)}</div>
+                        ${price ? `<div class="nft-tile-price">${price}</div>` : ''}
+                    `;
+                    grid.appendChild(tile);
+                });
+            } catch (e) {
+                console.error('[Portal] modal NFT load failed:', e);
+                grid.innerHTML = '';
+                document.getElementById('modalNFTEmpty').classList.remove('hidden');
+            }
+        }
+        window.closeNFTModal = function() {
+            document.getElementById('nftModal').classList.remove('active');
+            document.body.style.overflow = '';
+            portal.modalColId = null;
+        };
+        window.modalOpenInPunkSwap = function() {
+            if (portal.modalColId) {
+                // PunkSwap supports ?collection= deep link via internal viewCollection handler
+                window.open(`${PUNKSWAP_URL}/#tab-market`, '_blank', 'noopener');
+            } else {
+                launchPunkSwap('tab-market');
+            }
+        };
+
+        // ─── Boot sequence ───
+        async function boot() {
+            try {
+                const liveEl = document.getElementById('liveStatus');
+                liveEl.innerHTML = 'CONNECTING';
+                await waitForFb();
+
+                await Promise.all([loadCollections(), loadTransactions(), loadNFTStats()]);
+
+                const g = computeGlobalStats();
+                paintGlobalStats(g);
+                paintCollections();
+
+                renderSwapChart(portal.currentChartRange);
+                renderCoinChart(portal.currentChartRange);
+                renderLiveFeed();
+
+                // Fetch burn vault stats (non-blocking, doesn't affect main load)
+                updateBurnStats();
+
+                liveEl.innerHTML = 'LIVE';
+                document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+            } catch (e) {
+                console.error('[Portal] boot failed:', e);
+                const liveEl = document.getElementById('liveStatus');
+                liveEl.innerHTML = 'OFFLINE';
+                liveEl.style.borderColor = 'rgba(239,68,68,0.5)';
+                liveEl.style.color = '#f87171';
+                document.getElementById('lastUpdated').textContent = `Error: ${e.message}`;
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // KEEPUNKS WALLET — light attribution listener
+        // The Portal is read-only (no signing) so all we need is to know
+        // which address is connected, which lets us show that user's
+        // portfolio / stats if we add a "My Portfolio" view later.
+        // The KeePunks extension publishes the address via a CustomEvent.
+        // ═════════════════════════════════════════════════════════════
+        window.keepunksSession = { address: null, connected: false };
+
+        function _kpAdoptAddress(addr) {
+            if (typeof addr !== 'string' || !addr.startsWith('keeta_')) return;
+            window.keepunksSession.address   = addr;
+            window.keepunksSession.connected = true;
+            const el = document.getElementById('connectedAddr');
+            if (el) el.textContent = addr.slice(0, 12) + '…' + addr.slice(-6);
+            console.log('[Portal] KeePunks address adopted:', addr.slice(0, 12) + '…');
+        }
+
+        window.addEventListener('keepunks:wallet_connected', (e) => {
+            const addr = e?.detail?.address;
+            if (addr) _kpAdoptAddress(addr);
+        });
+        // Pick up pre-existing injection
+        if (window.__keepunksAddress) _kpAdoptAddress(window.__keepunksAddress);
+
+        // ═════════════════════════════════════════════════════════════
+        // PUNKGRID WALLET — full in-page wallet
+        //
+        // SECURITY POSTURE — please read before changing anything in this block:
+        //   • Seed phrase lives ONLY in the closure below. No global write.
+        //   • Encrypted in-memory vault using AES-256-GCM with an ephemeral
+        //     key (Web Crypto, non-extractable when possible).
+        //   • Optional disk-resident password vault: PBKDF2-derived key
+        //     wrapping the seed in chrome.storage.local-style localStorage.
+        //     Brute-force protection: 5 attempts → 5 min lockout.
+        //   • Auto-lock after 15 minutes inactivity.
+        //   • Seed input fields use spellcheck=false / autocomplete=off /
+        //     autocapitalize=off and are cleared immediately after use.
+        //   • The DOM updates near the seed input only render constant
+        //     strings — no NFT/collection data flows through this region.
+        //
+        // Phishing reminder is rendered at the top of the wallet page so
+        // users can verify they're on the correct origin before typing.
+        //
+        // The KeetaNet SDK is already loaded by the Portal at page boot
+        // (https://static.network.keeta.com/keetanet-browser.js — see
+        // <head>). We use the same window.KeetaNet the rest of the page
+        // uses, no extra script tags.
+        // ═════════════════════════════════════════════════════════════
+        (function punkgridWallet() {
+            // ─── Constants ─────────────────────────────────────────────
+            const KTA_DECIMALS_RAW    = 1e18;
+            const PUNKS_DECIMALS      = 9;          // PUNKS raw = display * 1e9
+            const PUNKS_TOKEN         = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
+            const ESCROW_ADDR         = 'keeta_aabp2fceji4jhokjktgjcrsvn4whqipccqfcbk2ojoe7x2xbionukytbh567xoy';
+            const VAULT_STORAGE_KEY   = 'punkgrid_vault_v1';
+            const ADDR_CACHE_KEY      = 'punkgrid_addr_v1';
+            const AUTO_LOCK_MS        = 15 * 60 * 1000;
+            const MAX_PW_ATTEMPTS     = 5;
+            const PW_LOCKOUT_MS       = 5 * 60 * 1000;
+            const BIP39_URL           = 'https://cdn.jsdelivr.net/npm/bip39@3.1.0/src/wordlists/english.json';
+            const BIP39_SRI           = 'sha384-uFAkMwpPG4M6ZoBqS9P5BNpEFxHrPnqmMnKHMfAqJUHCVAhvFr6OXdpA6Ku1UL4';
+
+            // ─── Closure-private state ─────────────────────────────────
+            // These references are NEVER attached to window. Only the
+            // wired button handlers below have access.
+            const S = {
+                address:       null,
+                keetaAccount:  null,
+                keetaClient:   null,
+                ktaTokenAddr:  null,
+                inactivityTimer: null,
+                balancePollTimer: null,
+            };
+            let _initialized = false;
+            let _bip39Words = null;
+            let _genSeed = null;          // newly-generated seed pending confirm
+            let _pwAttempts = 0;
+            let _pwLockedUntil = 0;
+
+            // ─── SecureVault — AES-GCM with ephemeral key ─────────────
+            // The decryption key lives only in this closure. If the page
+            // is reloaded, the key is gone and the user must re-enter
+            // their seed (or password if they set one). The encrypted
+            // blob in memory is useless without the key.
+            const SecureVault = (() => {
+                let _key = null;
+                let _ciphertext = null;
+                let _iv = null;
+                async function store(plaintextSeed) {
+                    if (!plaintextSeed) return;
+                    _key = await crypto.subtle.generateKey(
+                        { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+                    );
+                    _iv = crypto.getRandomValues(new Uint8Array(12));
+                    const enc = new TextEncoder().encode(plaintextSeed);
+                    _ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: _iv }, _key, enc);
+                }
+                async function get() {
+                    if (!_key || !_ciphertext) return null;
+                    const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _iv }, _key, _ciphertext);
+                    return new TextDecoder().decode(dec);
+                }
+                function clear() { _key = null; _ciphertext = null; _iv = null; }
+                function hasContents() { return _key !== null && _ciphertext !== null; }
+                return { store, get, clear, hasContents };
+            })();
+
+            // ─── PasswordVault — PBKDF2 + AES-GCM, persisted ──────────
+            // Stored in localStorage so the user can unlock with just a
+            // password on return visits. The encrypted seed is useless
+            // without the password — derived key is non-extractable.
+            const PasswordVault = (() => {
+                async function deriveKey(password, salt) {
+                    const baseKey = await crypto.subtle.importKey(
+                        'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
+                    );
+                    return await crypto.subtle.deriveKey(
+                        { name: 'PBKDF2', salt, iterations: 250_000, hash: 'SHA-256' },
+                        baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+                    );
+                }
+                async function save(seed, password) {
+                    const salt = crypto.getRandomValues(new Uint8Array(16));
+                    const iv   = crypto.getRandomValues(new Uint8Array(12));
+                    const key  = await deriveKey(password, salt);
+                    const ct   = await crypto.subtle.encrypt(
+                        { name: 'AES-GCM', iv }, key, new TextEncoder().encode(seed)
+                    );
+                    const blob = {
+                        v: 1,
+                        salt: btoa(String.fromCharCode(...salt)),
+                        iv:   btoa(String.fromCharCode(...iv)),
+                        ct:   btoa(String.fromCharCode(...new Uint8Array(ct))),
+                    };
+                    localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(blob));
+                    return true;
+                }
+                async function load(password) {
+                    const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+                    if (!raw) return null;
+                    try {
+                        const blob = JSON.parse(raw);
+                        const salt = Uint8Array.from(atob(blob.salt), c => c.charCodeAt(0));
+                        const iv   = Uint8Array.from(atob(blob.iv),   c => c.charCodeAt(0));
+                        const ct   = Uint8Array.from(atob(blob.ct),   c => c.charCodeAt(0));
+                        const key  = await deriveKey(password, salt);
+                        const pt   = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+                        return new TextDecoder().decode(pt);
+                    } catch(e) {
+                        return null;  // wrong password or corrupt blob
+                    }
+                }
+                function exists() { return !!localStorage.getItem(VAULT_STORAGE_KEY); }
+                function destroy() { localStorage.removeItem(VAULT_STORAGE_KEY); }
+                return { save, load, exists, destroy };
+            })();
+
+            // ─── Toast notification ───────────────────────────────────
+            function toast(msg, type = 'info') {
+                if (typeof window.notify === 'function') {
+                    window.notify(msg, type);
+                    return;
+                }
+                // Fallback if Portal's notify isn't loaded yet
+                const t = document.createElement('div');
+                const color = type === 'error' ? '#ef4444' : type === 'success' ? '#22c55e' : '#06b6d4';
+                t.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(10,10,16,.95);border:1px solid ${color};color:${color};padding:10px 16px;border-radius:8px;font-family:'Fira Code',monospace;font-size:.75rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);`;
+                t.textContent = msg;
+                document.body.appendChild(t);
+                setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 2500);
+                setTimeout(() => t.remove(), 3000);
+            }
+
+            // ─── BIP-39 wordlist + 24-word generator ──────────────────
+            async function getBIP39Words() {
+                if (_bip39Words) return _bip39Words;
+                try {
+                    const r = await fetch(BIP39_URL, { integrity: BIP39_SRI, crossOrigin: 'anonymous' });
+                    if (!r.ok) throw new Error('fetch failed: ' + r.status);
+                    _bip39Words = await r.json();
+                } catch(sriErr) {
+                    console.warn('[wallet] BIP39 SRI failed, fallback:', sriErr.message);
+                    const r = await fetch(BIP39_URL);
+                    if (!r.ok) throw new Error('BIP39 fallback failed: ' + r.status);
+                    _bip39Words = await r.json();
+                }
+                if (!Array.isArray(_bip39Words) || _bip39Words.length !== 2048) {
+                    throw new Error('BIP39 wordlist invalid');
+                }
+                return _bip39Words;
+            }
+            async function generateMnemonic24() {
+                const words = await getBIP39Words();
+                const entropy = crypto.getRandomValues(new Uint8Array(32));
+                const hashBuf = await crypto.subtle.digest('SHA-256', entropy);
+                const hash = new Uint8Array(hashBuf);
+                const bits = [];
+                for (const b of entropy) for (let i = 7; i >= 0; i--) bits.push((b >> i) & 1);
+                for (let i = 7; i >= 0; i--) bits.push((hash[0] >> i) & 1);
+                const out = [];
+                for (let i = 0; i < 24; i++) {
+                    let idx = 0;
+                    for (let j = 0; j < 11; j++) idx = (idx << 1) | bits[i * 11 + j];
+                    out.push(words[idx]);
+                }
+                return out.join(' ');
+            }
+
+            // ─── Connect / disconnect ─────────────────────────────────
+            async function connectWithSeed(seedPhrase) {
+                if (!seedPhrase || seedPhrase.split(/\s+/).filter(Boolean).length < 12) {
+                    toast('Invalid seed phrase — need at least 12 words', 'error'); return false;
+                }
+                if (typeof KeetaNet === 'undefined') {
+                    toast('Wallet SDK not loaded — try refreshing the page', 'error'); return false;
+                }
+                try {
+                    toast('Connecting wallet…', 'info');
+                    const hex = await KeetaNet.lib.Account.seedFromPassphrase(seedPhrase.trim(), { asString: true });
+                    S.keetaAccount = KeetaNet.lib.Account.fromSeed(hex, 0);
+                    S.address      = S.keetaAccount.publicKeyString.get();
+                    S.keetaClient  = KeetaNet.UserClient.fromNetwork('main', S.keetaAccount);
+                    // Cache KTA token address
+                    try {
+                        const base = S.keetaClient.baseToken;
+                        S.ktaTokenAddr = typeof base === 'string' ? base : base?.publicKeyString?.get?.();
+                    } catch(e) { /* non-fatal */ }
+                    // Encrypt seed in memory for later signing
+                    await SecureVault.store(seedPhrase);
+                    sessionStorage.setItem(ADDR_CACHE_KEY, S.address);
+
+                    showUnlockedScreen();
+                    resetInactivity();
+                    startBalancePoll();
+                    refreshBalance();
+                    loadNFTs();
+                    loadActivity();
+                    loadStaking();
+                    toast('✅ Wallet connected', 'success');
+
+                    // Prompt for password setup if no vault exists
+                    if (!PasswordVault.exists()) {
+                        setTimeout(() => offerPasswordSetup(), 800);
+                    }
+                    return true;
+                } catch(e) {
+                    console.error('[wallet] connect failed:', e);
+                    toast('Connect failed: ' + e.message, 'error');
+                    return false;
+                }
+            }
+
+            function disconnect() {
+                S.address = null;
+                S.keetaAccount = null;
+                S.keetaClient = null;
+                S.ktaTokenAddr = null;
+                SecureVault.clear();
+                sessionStorage.removeItem(ADDR_CACHE_KEY);
+                if (S.inactivityTimer) clearTimeout(S.inactivityTimer);
+                if (S.balancePollTimer) clearInterval(S.balancePollTimer);
+                showLockedScreen();
+            }
+
+            // ─── Inactivity auto-lock ─────────────────────────────────
+            function resetInactivity() {
+                if (S.inactivityTimer) clearTimeout(S.inactivityTimer);
+                S.inactivityTimer = setTimeout(() => {
+                    if (S.address) {
+                        toast('🔒 Auto-locked after 15 min inactivity', 'info');
+                        disconnect();
+                    }
+                }, AUTO_LOCK_MS);
+            }
+            ['click','keydown','mousemove'].forEach(evt => {
+                document.addEventListener(evt, () => { if (S.address) resetInactivity(); }, { passive: true });
+            });
+
+            // ─── UI: screen toggle ────────────────────────────────────
+            function showLockedScreen() {
+                document.getElementById('walletScreenLocked').style.display = '';
+                document.getElementById('walletScreenUnlocked').style.display = 'none';
+                // Refresh unlock tab visibility based on vault presence
+                const unlockTab = document.getElementById('walletAuthTabUnlock');
+                if (unlockTab) {
+                    unlockTab.style.display = PasswordVault.exists() ? '' : 'none';
+                    if (PasswordVault.exists()) switchAuthTab('unlock');
+                }
+            }
+            function showUnlockedScreen() {
+                document.getElementById('walletScreenLocked').style.display = 'none';
+                document.getElementById('walletScreenUnlocked').style.display = '';
+                const addrEl = document.getElementById('walletAddressCopy');
+                if (addrEl && S.address) {
+                    addrEl.textContent = S.address.slice(0, 14) + '…' + S.address.slice(-6);
+                    addrEl.dataset.fullAddr = S.address;
+                }
+            }
+            function switchAuthTab(tab) {
+                ['import','create','unlock'].forEach(t => {
+                    const panel = document.getElementById('walletPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+                    if (panel) panel.style.display = t === tab ? '' : 'none';
+                });
+                document.querySelectorAll('.walletauth-tab').forEach(btn => {
+                    const active = btn.dataset.walletauthtab === tab;
+                    btn.classList.toggle('bg-cyan-500/15', active);
+                    btn.classList.toggle('text-cyan-300', active);
+                    btn.classList.toggle('text-slate-500', !active);
+                });
+            }
+            function switchSubTab(tab) {
+                ['vault','activity','staking'].forEach(t => {
+                    const panel = document.getElementById('walletSub' + t.charAt(0).toUpperCase() + t.slice(1));
+                    if (panel) panel.style.display = t === tab ? '' : 'none';
+                });
+                document.querySelectorAll('.walletsub-tab').forEach(btn => {
+                    const active = btn.dataset.walletsubtab === tab;
+                    btn.classList.toggle('bg-cyan-500/15', active);
+                    btn.classList.toggle('text-cyan-300', active);
+                    btn.classList.toggle('text-slate-500', !active);
+                });
+            }
+
+            // ─── Balance refresh ──────────────────────────────────────
+            async function refreshBalance() {
+                if (!S.keetaClient || !S.address) return;
+                try {
+                    const acct = KeetaNet.lib.Account.fromPublicKeyString(S.address);
+                    const balances = await S.keetaClient.allBalances(acct);
+                    let kta = 0, punks = 0;
+                    if (Array.isArray(balances)) {
+                        for (const b of balances) {
+                            const tokenAddr = String(b?.token?.publicKeyString?.get?.() ?? b?.token ?? '');
+                            let raw;
+                            try { raw = BigInt(String(b.balance ?? '0').replace('n','')); } catch(e) { raw = 0n; }
+                            if (tokenAddr === PUNKS_TOKEN) {
+                                punks = Number(raw) / Math.pow(10, PUNKS_DECIMALS);
+                            } else if (tokenAddr === S.ktaTokenAddr) {
+                                kta = Number(raw) / KTA_DECIMALS_RAW;
+                            }
+                        }
+                    }
+                    document.getElementById('walletKtaBalance').textContent   = fmtToken(kta);
+                    document.getElementById('walletPunksBalance').textContent = fmtToken(punks);
+                } catch(e) {
+                    console.warn('[wallet] refreshBalance failed:', e.message);
+                }
+            }
+            function startBalancePoll() {
+                if (S.balancePollTimer) clearInterval(S.balancePollTimer);
+                S.balancePollTimer = setInterval(refreshBalance, 30_000);
+            }
+            function fmtToken(n) {
+                if (!Number.isFinite(n)) return '—';
+                if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+                if (n >= 1e3) return (n/1e3).toFixed(2) + 'K';
+                if (n >= 1)   return n.toFixed(3);
+                return n.toFixed(6);
+            }
+
+            // ─── NFT vault loader ─────────────────────────────────────
+            async function loadNFTs() {
+                const grid = document.getElementById('walletNftGrid');
+                if (!grid || !S.address) return;
+                try {
+                    const fb = await waitForFb();
+                    // Query Firestore for NFTs the user owns
+                    const snap = await fb.getDocs(fb.query(
+                        fb.collection(fb.db, 'nfts'),
+                        fb.where('owner', '==', S.address),
+                        fb.limit(200)
+                    ));
+                    const nfts = [];
+                    let listed = 0;
+                    snap.forEach(d => {
+                        const n = { id: d.id, ...d.data() };
+                        nfts.push(n);
+                        if (n.isListed) listed++;
+                    });
+                    document.getElementById('walletNftCount').textContent = String(nfts.length);
+                    document.getElementById('walletActiveListings').textContent = String(listed);
+                    document.getElementById('walletVaultCount').textContent = nfts.length + ' NFT' + (nfts.length === 1 ? '' : 's');
+                    renderNftGrid(nfts);
+                } catch(e) {
+                    console.warn('[wallet] loadNFTs failed:', e.message);
+                    grid.textContent = '';
+                    const err = document.createElement('div');
+                    err.className = 'col-span-full py-12 text-center text-slate-500 mono text-xs';
+                    err.textContent = 'Could not load NFTs';
+                    grid.appendChild(err);
+                }
+            }
+            function renderNftGrid(nfts) {
+                const grid = document.getElementById('walletNftGrid');
+                grid.textContent = '';
+                if (!nfts.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'col-span-full py-12 text-center text-slate-500 mono text-xs';
+                    empty.textContent = 'No NFTs in this wallet yet';
+                    grid.appendChild(empty);
+                    return;
+                }
+                for (const nft of nfts) {
+                    grid.appendChild(buildNftCard(nft));
+                }
+            }
+            // NOTE: NFT card uses DOM API ONLY — no innerHTML with user data.
+            // NFT name and collection name come from Firestore and could
+            // theoretically be attacker-controlled; textContent neutralizes them.
+            function buildNftCard(nft) {
+                const card = document.createElement('div');
+                card.className = 'rounded-xl bg-black/30 border border-white/5 overflow-hidden hover:border-cyan-500/40 transition-all';
+                const imgWrap = document.createElement('div');
+                imgWrap.style.cssText = 'aspect-ratio:1/1;background:linear-gradient(135deg,rgba(88,28,135,.4),rgba(6,78,59,.4));position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+                const rawImg = nft.image || nft.imageUrl || nft.imagePath || nft.thumbnailCid;
+                if (rawImg) {
+                    const img = document.createElement('img');
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                    img.alt = '';
+                    img.loading = 'lazy';
+                    img.src = resolveIPFS(rawImg);
+                    img.classList.add('wallet-nft-img');
+                    imgWrap.appendChild(img);
+                } else {
+                    imgWrap.textContent = '👾';
+                    imgWrap.style.fontSize = '3rem';
+                    imgWrap.style.opacity = '.4';
+                }
+                if (nft.isListed) {
+                    const badge = document.createElement('div');
+                    badge.className = 'absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] orbitron font-black tracking-widest border';
+                    badge.style.cssText = 'background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:#c4b5fd;';
+                    badge.textContent = 'LISTED';
+                    imgWrap.appendChild(badge);
+                }
+                const body = document.createElement('div');
+                body.className = 'p-3';
+                const name = document.createElement('p');
+                name.className = 'text-xs font-bold text-white truncate';
+                name.textContent = nft.name || ('#' + (nft.mintIndex ?? '?'));
+                const col = document.createElement('p');
+                col.className = 'text-[10px] mono text-slate-500 truncate mt-0.5';
+                col.textContent = nft.collection || nft.collectionId || '';
+                body.appendChild(name);
+                body.appendChild(col);
+                if (nft.isListed && nft.listedPrice) {
+                    const price = document.createElement('p');
+                    price.className = 'text-[10px] mono text-cyan-300 mt-1';
+                    price.textContent = nft.listedPrice + ' ' + (nft.listedCurrency || 'KTA');
+                    body.appendChild(price);
+                }
+                card.appendChild(imgWrap);
+                card.appendChild(body);
+                return card;
+            }
+            function resolveIPFS(raw) {
+                if (!raw) return '';
+                if (raw.startsWith('http')) return raw;
+                if (raw.startsWith('ipfs://')) return 'https://ipfs.io/ipfs/' + raw.slice(7);
+                if (/^[a-z0-9]{40,}/i.test(raw)) return 'https://ipfs.io/ipfs/' + raw;
+                return raw;
+            }
+
+            // ─── Activity loader ──────────────────────────────────────
+            async function loadActivity() {
+                const list = document.getElementById('walletActivityList');
+                if (!list || !S.address) return;
+                try {
+                    const fb = await waitForFb();
+                    const snap = await fb.getDocs(fb.query(
+                        fb.collection(fb.db, 'transactions'),
+                        fb.where('wallet', '==', S.address),
+                        fb.orderBy('timestamp', 'desc'),
+                        fb.limit(50)
+                    ));
+                    const txs = [];
+                    snap.forEach(d => txs.push({ id: d.id, ...d.data() }));
+                    document.getElementById('walletActivityCount').textContent = txs.length + ' transaction' + (txs.length === 1 ? '' : 's');
+                    list.textContent = '';
+                    if (!txs.length) {
+                        const empty = document.createElement('p');
+                        empty.className = 'py-12 text-center text-slate-500 mono text-xs';
+                        empty.textContent = 'No transactions yet';
+                        list.appendChild(empty);
+                        return;
+                    }
+                    for (const tx of txs) {
+                        list.appendChild(buildActivityRow(tx));
+                    }
+                } catch(e) {
+                    // Likely missing composite index — fall back to client-side filter
+                    console.warn('[wallet] loadActivity failed:', e.message);
+                    list.textContent = '';
+                    const note = document.createElement('p');
+                    note.className = 'py-12 text-center text-slate-500 mono text-xs';
+                    note.textContent = 'Transaction history will appear here. (Firestore index may need to be built — check console.)';
+                    list.appendChild(note);
+                }
+            }
+            function buildActivityRow(tx) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/5';
+                const badge = document.createElement('span');
+                const typeText = String(tx.type || 'tx').toUpperCase();
+                badge.className = 'px-2 py-0.5 rounded text-[10px] orbitron font-black tracking-widest border flex-shrink-0';
+                const tMap = {
+                    SALE:             'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                    PURCHASE:         'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                    MINT:             'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
+                    LISTING:          'bg-purple-500/15 text-purple-300 border-purple-500/40',
+                    CANCELLATION:     'bg-slate-500/15 text-slate-300 border-slate-500/40',
+                    AUCTION_SALE:     'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                    AUCTION_PURCHASE: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                };
+                badge.classList.add(...(tMap[typeText] || 'bg-slate-500/15 text-slate-300 border-slate-500/40').split(' '));
+                badge.textContent = typeText;
+                const mid = document.createElement('div');
+                mid.className = 'flex-1 min-w-0';
+                const name = document.createElement('p');
+                name.className = 'text-sm text-white truncate';
+                name.textContent = tx.nftName || tx.nftId || 'Transaction';
+                mid.appendChild(name);
+                if (tx.counterParty) {
+                    const cp = document.createElement('p');
+                    cp.className = 'text-[10px] mono text-slate-500 truncate';
+                    cp.textContent = '→ ' + String(tx.counterParty).slice(0, 14) + '…';
+                    mid.appendChild(cp);
+                }
+                const right = document.createElement('div');
+                right.className = 'text-right flex-shrink-0';
+                if (tx.price) {
+                    const p = document.createElement('p');
+                    p.className = 'text-xs orbitron font-bold ' + (tx.currency === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300');
+                    p.textContent = Number(tx.price).toFixed(4) + ' ' + (tx.currency || 'KTA');
+                    right.appendChild(p);
+                }
+                const ts = document.createElement('p');
+                ts.className = 'text-[10px] mono text-slate-500 mt-0.5';
+                ts.textContent = timeAgo(tx.timestamp);
+                right.appendChild(ts);
+                row.appendChild(badge);
+                row.appendChild(mid);
+                row.appendChild(right);
+                return row;
+            }
+            function timeAgo(ts) {
+                if (!ts) return '—';
+                const ms = ts?.toMillis ? ts.toMillis() : (typeof ts === 'number' ? (ts < 1e12 ? ts * 1000 : ts) : Date.parse(String(ts)));
+                if (!Number.isFinite(ms)) return '—';
+                const diff = (Date.now() - ms) / 1000;
+                if (diff < 60)   return Math.floor(diff) + 's ago';
+                if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+                return Math.floor(diff/86400) + 'd ago';
+            }
+
+            // ─── Staking loader (read-only stats; deep actions on PunkSwap) ─
+            async function loadStaking() {
+                if (!S.address) return;
+                try {
+                    const r = await fetch('https://us-central1-punkswap-production.cloudfunctions.net/getMyPoolShare', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { walletAddress: S.address } }),
+                    });
+                    if (!r.ok) throw new Error('CF ' + r.status);
+                    const json = await r.json();
+                    const d = json?.result?.data || json?.data || {};
+                    document.getElementById('walletStakedAmount').textContent  = fmtToken(d.stakedAmount || 0);
+                    document.getElementById('walletClaimableRewards').textContent = fmtToken(d.estimatedClaim || 0);
+                    document.getElementById('walletPoolShare').textContent    = d.poolShare != null ? (Number(d.poolShare) * 100).toFixed(2) + '%' : '—';
+                } catch(e) {
+                    console.warn('[wallet] loadStaking failed:', e.message);
+                    document.getElementById('walletStakedAmount').textContent  = '—';
+                    document.getElementById('walletClaimableRewards').textContent = '—';
+                    document.getElementById('walletPoolShare').textContent    = '—';
+                }
+            }
+
+            // ─── Send flow ────────────────────────────────────────────
+            let _sendCurrency = 'KTA';
+            function openSendModal(currency) {
+                _sendCurrency = currency;
+                document.getElementById('walletSendTitle').textContent = 'Send ' + currency;
+                document.getElementById('walletSendTo').value = '';
+                document.getElementById('walletSendAmount').value = '';
+                document.getElementById('walletSendError').classList.add('hidden');
+                // Show current balance as max-label
+                const balEl = currency === 'KTA'
+                    ? document.getElementById('walletKtaBalance')
+                    : document.getElementById('walletPunksBalance');
+                document.getElementById('walletSendMaxLabel').textContent = 'Balance: ' + (balEl?.textContent || '—') + ' ' + currency;
+                document.getElementById('walletSendModal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('walletSendTo').focus(), 50);
+            }
+            function closeSendModal() {
+                document.getElementById('walletSendModal').classList.add('hidden');
+            }
+            async function submitSend() {
+                const to     = document.getElementById('walletSendTo').value.trim();
+                const amount = parseFloat(document.getElementById('walletSendAmount').value);
+                const errEl  = document.getElementById('walletSendError');
+                errEl.classList.add('hidden');
+
+                if (!to.startsWith('keeta_') || to.length < 30) {
+                    errEl.textContent = 'Invalid recipient address';
+                    errEl.classList.remove('hidden'); return;
+                }
+                if (!amount || amount <= 0) {
+                    errEl.textContent = 'Invalid amount';
+                    errEl.classList.remove('hidden'); return;
+                }
+                if (!S.keetaClient || !S.keetaAccount) {
+                    errEl.textContent = 'Wallet not connected';
+                    errEl.classList.remove('hidden'); return;
+                }
+                const submitBtn = document.getElementById('walletSendSubmit');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ SIGNING…';
+                try {
+                    const builder = S.keetaClient.initBuilder();
+                    builder.updateAccounts({ signer: S.keetaAccount, account: S.keetaAccount });
+                    const recipient = KeetaNet.lib.Account.fromPublicKeyString(to);
+                    if (_sendCurrency === 'PUNKS') {
+                        const raw = BigInt(Math.round(amount * 1e9).toString()) * BigInt(1e9.toString());
+                        builder.send(recipient, raw, KeetaNet.lib.Account.fromPublicKeyString(PUNKS_TOKEN));
+                    } else {
+                        builder.send(recipient, BigInt(Math.floor(amount * 1e18)), S.keetaClient.baseToken);
+                    }
+                    await S.keetaClient.computeBuilderBlocks(builder);
+                    await S.keetaClient.publishBuilder(builder);
+                    toast('✅ Sent ' + amount + ' ' + _sendCurrency, 'success');
+                    closeSendModal();
+                    setTimeout(refreshBalance, 1500);
+                } catch(e) {
+                    errEl.textContent = 'Send failed: ' + e.message;
+                    errEl.classList.remove('hidden');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'CONFIRM SEND';
+                }
+            }
+
+            // ─── Password setup prompt after first connect ────────────
+            function offerPasswordSetup() {
+                if (!S.address || !SecureVault.hasContents()) return;
+                if (PasswordVault.exists()) return;
+                // Simple inline prompt — no modal, keep it light
+                const pw = prompt('Set a password to unlock this wallet faster on future visits?\n\nLeave empty to skip. You can always sign in with your seed phrase.');
+                if (!pw || pw.length < 6) return;
+                SecureVault.get().then(async seed => {
+                    if (!seed) return;
+                    try {
+                        await PasswordVault.save(seed, pw);
+                        toast('Password set — you can unlock faster next time', 'success');
+                    } catch(e) {
+                        toast('Could not save password: ' + e.message, 'error');
+                    }
+                });
+            }
+
+            // ─── Claim staking rewards (CF call, signed via popup CF auth) ─
+            async function claimRewards() {
+                if (!S.address || !S.keetaClient) return;
+                const btn = document.getElementById('walletClaimBtn');
+                btn.disabled = true;
+                btn.textContent = '⏳ CLAIMING…';
+                try {
+                    // Most claim Cloud Functions take only the address — the CF
+                    // does the on-chain transfer via its own escrow key.
+                    const r = await fetch('https://us-central1-punkswap-production.cloudfunctions.net/claimStakingRewards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { walletAddress: S.address } }),
+                    });
+                    if (!r.ok) throw new Error('CF ' + r.status);
+                    toast('✅ Rewards claimed!', 'success');
+                    setTimeout(() => { refreshBalance(); loadStaking(); }, 2000);
+                } catch(e) {
+                    toast('Claim failed: ' + e.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '🌟 CLAIM REWARDS';
+                }
+            }
+
+            // ─── Page init — runs first time wallet tab is opened ─────
+            window._initWalletPage = function _initWalletPage() {
+                if (_initialized) {
+                    // Page already wired; just refresh visible state
+                    if (S.address) {
+                        refreshBalance(); loadNFTs(); loadActivity(); loadStaking();
+                    } else {
+                        showLockedScreen();
+                    }
+                    return;
+                }
+                _initialized = true;
+
+                // Set the phishing URL check
+                const urlEl = document.getElementById('walletUrlCheck');
+                if (urlEl) urlEl.textContent = window.location.origin;
+
+                // Wire auth tabs
+                document.querySelectorAll('.walletauth-tab').forEach(btn => {
+                    btn.addEventListener('click', () => switchAuthTab(btn.dataset.walletauthtab));
+                });
+                document.querySelectorAll('.walletsub-tab').forEach(btn => {
+                    btn.addEventListener('click', () => switchSubTab(btn.dataset.walletsubtab));
+                });
+
+                // Import flow
+                const seedInput = document.getElementById('walletImportSeed');
+                seedInput.addEventListener('input', () => {
+                    const c = seedInput.value.trim().split(/\s+/).filter(Boolean).length;
+                    document.getElementById('walletImportWordCount').textContent = c + ' / 24 words';
+                });
+                document.getElementById('walletImportBtn').addEventListener('click', async () => {
+                    const seed = seedInput.value.trim();
+                    if (!seed) return;
+                    const ok = await connectWithSeed(seed);
+                    if (ok) seedInput.value = '';
+                });
+
+                // Create flow
+                document.getElementById('walletGenerateBtn').addEventListener('click', async () => {
+                    const btn = document.getElementById('walletGenerateBtn');
+                    btn.disabled = true;
+                    btn.textContent = '⏳ Generating…';
+                    try {
+                        _genSeed = await generateMnemonic24();
+                        const gridEl = document.getElementById('walletCreateSeedGrid');
+                        gridEl.textContent = '';
+                        _genSeed.split(' ').forEach((w, i) => {
+                            const cell = document.createElement('div');
+                            cell.style.cssText = 'background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:6px;padding:6px 8px;font-family:"Fira Code",monospace;font-size:.7rem;display:flex;gap:6px;align-items:center;';
+                            const num = document.createElement('span');
+                            num.style.cssText = 'color:#94a3b8;min-width:18px;text-align:right;font-size:.6rem;';
+                            num.textContent = String(i + 1);
+                            const word = document.createElement('span');
+                            word.style.cssText = 'color:#fbbf24;font-weight:600;';
+                            word.textContent = w;
+                            cell.appendChild(num);
+                            cell.appendChild(word);
+                            gridEl.appendChild(cell);
+                        });
+                        document.getElementById('walletCreateStep1').style.display = 'none';
+                        document.getElementById('walletCreateStep2').style.display = '';
+                        // Auto-wipe after 90 seconds if user hasn't connected
+                        setTimeout(() => {
+                            if (_genSeed && !S.address) {
+                                _genSeed = null;
+                                gridEl.textContent = '';
+                                document.getElementById('walletCreateStep1').style.display = '';
+                                document.getElementById('walletCreateStep2').style.display = 'none';
+                                toast('⚠️ Seed wiped — generate again if still needed', 'info');
+                            }
+                        }, 90_000);
+                    } catch(e) {
+                        toast('Could not generate: ' + e.message, 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = '⚡ GENERATE NEW WALLET';
+                    }
+                });
+                const confirmBox = document.getElementById('walletCreateConfirm');
+                const connectBtn = document.getElementById('walletCreateConnectBtn');
+                confirmBox.addEventListener('change', () => {
+                    connectBtn.disabled = !confirmBox.checked;
+                    connectBtn.style.opacity = confirmBox.checked ? '1' : '.45';
+                });
+                document.getElementById('walletCreateCopyBtn').addEventListener('click', async () => {
+                    if (!_genSeed) return;
+                    try {
+                        await navigator.clipboard.writeText(_genSeed);
+                        toast('✅ Copied — clipboard auto-clears in 30s', 'success');
+                        setTimeout(() => navigator.clipboard.writeText('').catch(() => {}), 30_000);
+                    } catch(e) {
+                        toast('Copy failed — please select manually', 'error');
+                    }
+                });
+                connectBtn.addEventListener('click', async () => {
+                    if (!_genSeed) return;
+                    if (!confirmBox.checked) return;
+                    const seed = _genSeed;
+                    _genSeed = null;  // wipe immediately
+                    await connectWithSeed(seed);
+                });
+
+                // Unlock flow
+                document.getElementById('walletUnlockBtn').addEventListener('click', async () => {
+                    if (Date.now() < _pwLockedUntil) {
+                        const mins = Math.ceil((_pwLockedUntil - Date.now()) / 60_000);
+                        document.getElementById('walletUnlockMessage').textContent = '🔒 Too many attempts — try again in ' + mins + ' min';
+                        return;
+                    }
+                    const pwEl = document.getElementById('walletUnlockPassword');
+                    const pw = pwEl.value;
+                    if (!pw) return;
+                    document.getElementById('walletUnlockMessage').textContent = 'Unlocking…';
+                    const seed = await PasswordVault.load(pw);
+                    pwEl.value = '';
+                    if (!seed) {
+                        _pwAttempts++;
+                        if (_pwAttempts >= MAX_PW_ATTEMPTS) {
+                            _pwLockedUntil = Date.now() + PW_LOCKOUT_MS;
+                            _pwAttempts = 0;
+                            document.getElementById('walletUnlockMessage').textContent = '🔒 Too many failed attempts — locked for 5 min';
+                            return;
+                        }
+                        document.getElementById('walletUnlockMessage').textContent = 'Wrong password (' + _pwAttempts + ' of ' + MAX_PW_ATTEMPTS + ')';
+                        return;
+                    }
+                    _pwAttempts = 0;
+                    document.getElementById('walletUnlockMessage').textContent = '';
+                    await connectWithSeed(seed);
+                });
+                document.getElementById('walletUnlockUseSeed').addEventListener('click', () => switchAuthTab('import'));
+
+                // Unlocked screen wiring
+                document.getElementById('walletAddressCopy').addEventListener('click', async (e) => {
+                    const addr = e.currentTarget.dataset.fullAddr;
+                    if (!addr) return;
+                    try {
+                        await navigator.clipboard.writeText(addr);
+                        toast('Address copied', 'success');
+                    } catch(e) {}
+                });
+                document.getElementById('walletSendKtaBtn').addEventListener('click', () => openSendModal('KTA'));
+                document.getElementById('walletSendPunksBtn').addEventListener('click', () => openSendModal('PUNKS'));
+                document.getElementById('walletRefreshBtn').addEventListener('click', () => {
+                    refreshBalance(); loadNFTs(); loadActivity(); loadStaking();
+                    toast('Refreshing…', 'info');
+                });
+                document.getElementById('walletLockBtn').addEventListener('click', () => {
+                    if (confirm('Lock wallet? Encryption key will be cleared from memory.')) disconnect();
+                });
+                document.getElementById('walletSendClose').addEventListener('click', closeSendModal);
+                document.getElementById('walletSendMaxBtn').addEventListener('click', () => {
+                    const balText = (_sendCurrency === 'KTA'
+                        ? document.getElementById('walletKtaBalance')
+                        : document.getElementById('walletPunksBalance')).textContent;
+                    // Strip the K/M suffix and use the raw number from latest poll
+                    document.getElementById('walletSendAmount').value = balText.replace(/[KM]/g,'');
+                });
+                document.getElementById('walletSendSubmit').addEventListener('click', submitSend);
+                document.getElementById('walletClaimBtn').addEventListener('click', claimRewards);
+
+                // Initial screen state
+                showLockedScreen();
+                if (PasswordVault.exists()) switchAuthTab('unlock');
+            };
+
+            // Diagnostic only — no signing surface exposed
+            window.punkgridWallet = { hasVault: PasswordVault.exists.bind(PasswordVault), connected: () => !!S.address };
+        })();
+        // ═════════════════════════════════════════════════════════════
+        // END PUNKGRID WALLET
+        // ═════════════════════════════════════════════════════════════
+
+        // ═════════════════════════════════════════════════════════════
+        // TRUE BURN VAULT — live tracking of permanently-locked $PUNKS
+        // ═════════════════════════════════════════════════════════════
+        const BURN_VAULT_ADDRESS = 'keeta_aabrwqqwtbahteycc4stsum5s35jg7wjqak2eekrwkri2ssahie77g5ye6su5oi';
+        const PUNKS_TOKEN_ADDRESS = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
+        const PUNKS_TOTAL_SUPPLY  = 67_000_000_000;
+        // PUNKS uses 9 decimals; on-chain raw = display * 1e9
+        const PUNKS_DECIMALS = 9;
+        // localStorage key for the rolling burn history (~last 7 days of samples)
+        const BURN_HISTORY_KEY = 'punks_burn_history_v1';
+        const BURN_HISTORY_MAX = 168; // ~7 days @ 1 sample/hour, but we'll prune older anyway
+
+        // Reuses a single read-only KeetaNet client across calls
+        let _burnClient = null;
+        function getBurnClient() {
+            if (_burnClient) return _burnClient;
+            if (typeof KeetaNet === 'undefined' || !KeetaNet.UserClient) {
+                throw new Error('KeetaNet SDK not loaded');
+            }
+            // Ephemeral throwaway account — we only read; we never sign
+            const ephemeralSeed    = KeetaNet.lib.Account.generateRandomSeed({ asString: true });
+            const ephemeralAccount = KeetaNet.lib.Account.fromSeed(ephemeralSeed, 0);
+            _burnClient = KeetaNet.UserClient.fromNetwork('main', ephemeralAccount);
+            return _burnClient;
+        }
+
+        function fmtPunks(n) {
+            if (n == null || !Number.isFinite(n)) return '—';
+            if (n >= 1e9) return (n / 1e9).toFixed(3) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+            return n.toFixed(0);
+        }
+
+        // ─── Burn history persistence ────────────────────────────
+        // We don't have an indexer; we sample the burn balance each refresh
+        // and persist it in localStorage so the mini chart shows recent burn
+        // events even after a reload. Trimmed to BURN_HISTORY_MAX entries
+        // and to the last 7 days.
+        function loadBurnHistory() {
+            try {
+                const raw = localStorage.getItem(BURN_HISTORY_KEY);
+                if (!raw) return [];
+                const arr = JSON.parse(raw);
+                if (!Array.isArray(arr)) return [];
+                const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+                return arr.filter(p => p && p.ts > cutoff);
+            } catch { return []; }
+        }
+        function pushBurnHistory(ts, burned) {
+            try {
+                let arr = loadBurnHistory();
+                // Dedupe: only push if value changed OR last sample is older than 5 minutes
+                const last = arr[arr.length - 1];
+                if (!last || last.burned !== burned || (ts - last.ts) > 5 * 60 * 1000) {
+                    arr.push({ ts, burned });
+                    if (arr.length > BURN_HISTORY_MAX) arr = arr.slice(-BURN_HISTORY_MAX);
+                    localStorage.setItem(BURN_HISTORY_KEY, JSON.stringify(arr));
+                }
+            } catch { /* localStorage quota / disabled */ }
+        }
+
+        // ─── Burn mini chart ──────────────────────────────────────
+        let _burnChart = null;
+        function renderBurnChart() {
+            const canvas = document.getElementById('burnChart');
+            if (!canvas) return;
+            const history = loadBurnHistory();
+
+            if (_burnChart) _burnChart.destroy();
+
+            // If we don't have at least 2 samples yet, draw a placeholder shimmer
+            if (history.length < 2) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+                ctx.font = '10px "Fira Code", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Gathering data…', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 60);
+            grad.addColorStop(0, 'rgba(249, 115, 22, 0.55)');
+            grad.addColorStop(1, 'rgba(249, 115, 22, 0.0)');
+
+            _burnChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map(p => ''),
+                    datasets: [{
+                        data: history.map(p => p.burned),
+                        borderColor: '#f97316',
+                        backgroundColor: grad,
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.35,
+                        stepped: false,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                                title: (items) => {
+                                    const idx = items[0]?.dataIndex ?? 0;
+                                    const p = history[idx];
+                                    return p ? new Date(p.ts).toLocaleString() : '';
+                                },
+                                label: (item) => `${fmtPunks(item.parsed.y)} PUNKS burned`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, beginAtZero: false }
+                    },
+                    elements: { line: { capBezierPoints: false } }
+                }
+            });
+        }
+
+        // ─── Burn animation trigger ──────────────────────────────
+        function triggerBurnAnimation() {
+            const card = document.getElementById('burnCard');
+            if (!card) return;
+            card.classList.add('burn-firing');
+            // remove class after animation so it can be re-triggered next time
+            setTimeout(() => card.classList.remove('burn-firing'), 1700);
+        }
+
+        async function updateBurnStats() {
+            const elBurn  = document.getElementById('statBurnTotal');
+            const elPct   = document.getElementById('statBurnPct');
+            const elCirc  = document.getElementById('statEffectiveCirc');
+            const elDelta = document.getElementById('burnDelta');
+            try {
+                const client = getBurnClient();
+                const burnAccount = KeetaNet.lib.Account.fromPublicKeyString(BURN_VAULT_ADDRESS);
+
+                // Pull all token balances on the burn vault, then pick out PUNKS
+                const balances = await client.allBalances(burnAccount);
+
+                let burnedRaw = 0n;
+                if (Array.isArray(balances)) {
+                    for (const b of balances) {
+                        const tokenAddr = String(
+                            b?.token?.publicKeyString?.get?.() ?? b?.token ?? ''
+                        );
+                        if (tokenAddr === PUNKS_TOKEN_ADDRESS) {
+                            try { burnedRaw = BigInt(String(b.balance ?? '0').replace('n', '')); }
+                            catch (e) { burnedRaw = 0n; }
+                            break;
+                        }
+                    }
+                }
+
+                const burned = Number(burnedRaw) / Math.pow(10, PUNKS_DECIMALS);
+                const effectiveCirculating = PUNKS_TOTAL_SUPPLY - burned;
+                const pct = (burned / PUNKS_TOTAL_SUPPLY) * 100;
+
+                // ─── Detect a NEW burn vs the previous sample ──────
+                const history = loadBurnHistory();
+                const previousBurn = history.length ? history[history.length - 1].burned : null;
+                let delta = 0;
+                if (previousBurn != null && burned > previousBurn) {
+                    delta = burned - previousBurn;
+                    // Don't trigger animation on the very first poll of a session;
+                    // only when we genuinely observe an increase between two samples.
+                    triggerBurnAnimation();
+                }
+                pushBurnHistory(Date.now(), burned);
+
+                elBurn.textContent = fmtPunks(burned);
+                elPct.textContent  = `${pct.toFixed(4)} % of 67B supply`;
+                elCirc.innerHTML   = `${fmtPunks(effectiveCirculating)} <span class="text-orange-400 text-xs font-bold">PUNKS</span>`;
+                if (elDelta) {
+                    elDelta.textContent = delta > 0 ? `+${fmtPunks(delta)} 🔥` : '—';
+                }
+
+                renderBurnChart();
+            } catch (e) {
+                console.warn('[Portal] updateBurnStats failed:', e?.message || e);
+                if (elBurn) elBurn.textContent = '—';
+                if (elPct)  elPct.textContent  = 'Burn vault offline';
+                if (elCirc) elCirc.innerHTML   = '— <span class="text-orange-400 text-xs font-bold">PUNKS</span>';
+                if (elDelta) elDelta.textContent = '—';
+                renderBurnChart(); // still show whatever history we have
+            }
+        }
+
+        // Timeframe pill wiring
+        fillTimeframes('swap-timeframes', 'cyan', (tf) => { portal.currentChartRange = tf; renderSwapChart(tf); });
+        fillTimeframes('coin-timeframes', 'purple', (tf) => { renderCoinChart(tf); });
+
+        // Boot when DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', boot);
+        } else {
+            boot();
+        }
+
+        // Auto-refresh every 60 seconds for "live" feel
+        setInterval(async () => {
+            try {
+                await Promise.all([loadTransactions(), loadNFTStats()]);
+                const g = computeGlobalStats();
+                paintGlobalStats(g);
+                renderSwapChart(portal.currentChartRange);
+                renderCoinChart(portal.currentChartRange);
+                paintCollections();
+                renderLiveFeed();
+                updateBurnStats();
+                document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+            } catch (e) { /* silent */ }
+        }, 60000);
+    </script>
+</body>
+</html>
