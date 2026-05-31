@@ -4,7 +4,7 @@
   "private": true,
   "description": "Punk Portal — Keeta ecosystem dashboard with embedded PunkGrid wallet",
   "scripts": {
-    "build": "echo 'No build step — static site'",
+    "build": "exit 0",
     "start": "echo 'Static site — open index.html in a browser or deploy to Vercel'"
   }
 }
