@@ -475,6 +475,7 @@
                                 </button>
                                 <span id="burnDebugStatus" class="text-[9px] text-slate-600 font-mono"></span>
                             </div>
+                            <div id="txDiagnostic" class="mt-1 text-[8px] text-slate-700 font-mono break-all"></div>
                         </div>
                     </div>
                 </div>
@@ -1247,12 +1248,18 @@
                 const txs = [];
                 snap.forEach(d => txs.push({ id: d.id, ...d.data() }));
                 portal.transactions = txs;
-                // One-time diagnostic: log first tx to see actual field names
+                // Diagnostic: expose tx field names on-screen for debugging
                 if (txs.length) {
                     const sample = txs[0];
-                    console.log('[Portal] TX sample fields:', JSON.stringify(sample));
-                    const priceGuess = sample.price ?? sample.priceKTA ?? sample.amount ?? sample.salePrice ?? 'NOT FOUND';
-                    console.log('[Portal] TX price field guess:', priceGuess, '| type:', sample.type, '| currency:', sample.currency ?? sample.paymentToken ?? 'NOT FOUND');
+                    console.log('[Portal] TX sample:', JSON.stringify(sample));
+                    // Show on-screen in the burn debug area
+                    const diagEl = document.getElementById('txDiagnostic');
+                    if (diagEl) {
+                        const keys = Object.keys(sample).join(', ');
+                        const p = sample.price ?? sample.priceKTA ?? sample.amount ?? sample.salePrice ?? '?';
+                        const c = sample.currency ?? sample.paymentToken ?? sample.token ?? '?';
+                        diagEl.textContent = `TX[0] type=${sample.type} price=${p} cur=${c} | keys: ${keys}`;
+                    }
                 }
                 return txs;
             } catch (e) {
@@ -2021,7 +2028,7 @@
         (function punkgridWallet() {
             // ─── Constants ─────────────────────────────────────────────
             const KTA_DECIMALS_RAW    = 1e18;
-            const PUNKS_DECIMALS      = 12;         // PUNKS raw = display * 1e12
+            const PUNKS_DECIMALS      = 15;         // PUNKS raw = display * 1e15
             const PUNKS_TOKEN         = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
             const ESCROW_ADDR         = 'keeta_aabp2fceji4jhokjktgjcrsvn4whqipccqfcbk2ojoe7x2xbionukytbh567xoy';
             const VAULT_STORAGE_KEY   = 'punkgrid_vault_v1';
@@ -2837,7 +2844,7 @@
         const PUNKS_TOKEN_ADDRESS = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
         const PUNKS_TOTAL_SUPPLY  = 67_000_000_000;
         // PUNKS uses 9 decimals; on-chain raw = display * 1e9
-        const PUNKS_DECIMALS = 12; // Keeta on-chain raw = display × 10^12
+        const PUNKS_DECIMALS = 15; // Keeta on-chain raw = display × 10^15 (confirmed: raw=2e18 / 1e15 = 2000)
         // localStorage key for the rolling burn history (~last 7 days of samples)
         const BURN_HISTORY_KEY = 'punks_burn_history_v1';
         const BURN_HISTORY_MAX = 168; // ~7 days @ 1 sample/hour, but we'll prune older anyway
@@ -3065,7 +3072,7 @@
                 // Auto-detect scale: the SDK balance() may return the value
                 // already in a different unit. We know there are 2000 PUNKS in
                 // the vault right now, so we can infer the correct divisor.
-                // Standard: divide by 10^PUNKS_DECIMALS (10^12).
+                // Standard: divide by 10^PUNKS_DECIMALS (10^15).
                 let burned = Number(absBurnedRaw) / Math.pow(10, PUNKS_DECIMALS);
 
                 console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw} absBurnedRaw=${absBurnedRaw} burned=${burned}`);
