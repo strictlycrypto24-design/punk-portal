@@ -468,6 +468,13 @@
                                class="inline-block mt-3 text-[10px] orbitron uppercase tracking-widest text-orange-400 hover:text-orange-300 transition-colors">
                                 Verify on Keeta Explorer →
                             </a>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button onclick="(async()=>{this.textContent='⟳';await updateBurnStats();this.textContent='↺ Refresh';})(this)"
+                                        class="text-[9px] orbitron uppercase tracking-widest text-orange-400 hover:text-orange-300 transition-colors border border-orange-500/25 rounded px-2 py-0.5">
+                                    ↺ Refresh
+                                </button>
+                                <span id="burnDebugStatus" class="text-[9px] text-slate-600 font-mono"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2855,9 +2862,13 @@
         function pushBurnHistory(ts, burned) {
             try {
                 let arr = loadBurnHistory();
-                // Dedupe: only push if value changed OR last sample is older than 5 minutes
                 const last = arr[arr.length - 1];
-                if (!last || last.burned !== burned || (ts - last.ts) > 5 * 60 * 1000) {
+                // Always push if the burned value changed (catches new burns immediately).
+                // Otherwise, push a periodic heartbeat sample no more than once per 5 min
+                // so the chart still fills in during quiet periods.
+                const valueChanged = !last || last.burned !== burned;
+                const heartbeatDue = last && (ts - last.ts) > 5 * 60 * 1000;
+                if (valueChanged || heartbeatDue) {
                     arr.push({ ts, burned });
                     if (arr.length > BURN_HISTORY_MAX) arr = arr.slice(-BURN_HISTORY_MAX);
                     localStorage.setItem(BURN_HISTORY_KEY, JSON.stringify(arr));
@@ -2872,10 +2883,10 @@
             if (!canvas) return;
             const history = loadBurnHistory();
 
-            if (_burnChart) _burnChart.destroy();
+            if (_burnChart) { _burnChart.destroy(); _burnChart = null; }
 
-            // If we don't have at least 2 samples yet, draw a placeholder shimmer
-            if (history.length < 2) {
+            // Need at least 1 point to draw anything meaningful
+            if (history.length < 1) {
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
@@ -2885,6 +2896,11 @@
                 return;
             }
 
+            // With only 1 point, duplicate it so Chart.js can draw a flat line
+            const chartData = history.length === 1
+                ? [history[0], { ts: history[0].ts + 1, burned: history[0].burned }]
+                : history;
+
             const ctx = canvas.getContext('2d');
             const grad = ctx.createLinearGradient(0, 0, 0, 60);
             grad.addColorStop(0, 'rgba(249, 115, 22, 0.55)');
@@ -2893,9 +2909,9 @@
             _burnChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: history.map(p => ''),
+                    labels: chartData.map(p => ''),
                     datasets: [{
-                        data: history.map(p => p.burned),
+                        data: chartData.map(p => p.burned),
                         borderColor: '#f97316',
                         backgroundColor: grad,
                         borderWidth: 1.5,
@@ -2914,7 +2930,7 @@
                             callbacks: {
                                 title: (items) => {
                                     const idx = items[0]?.dataIndex ?? 0;
-                                    const p = history[idx];
+                                    const p = chartData[idx];
                                     return p ? new Date(p.ts).toLocaleString() : '';
                                 },
                                 label: (item) => `${fmtPunks(item.parsed.y)} PUNKS burned`
@@ -2947,38 +2963,91 @@
             try {
                 const client = getBurnClient();
                 const burnAccount = KeetaNet.lib.Account.fromPublicKeyString(BURN_VAULT_ADDRESS);
-
-                // Pull all token balances on the burn vault, then pick out PUNKS
-                const balances = await client.allBalances(burnAccount);
+                const tokenAccount = KeetaNet.lib.Account.fromPublicKeyString(PUNKS_TOKEN_ADDRESS);
 
                 let burnedRaw = 0n;
-                if (Array.isArray(balances)) {
-                    for (const b of balances) {
-                        const tokenAddr = String(
-                            b?.token?.publicKeyString?.get?.() ?? b?.token ?? ''
-                        );
-                        if (tokenAddr === PUNKS_TOKEN_ADDRESS) {
-                            try { burnedRaw = BigInt(String(b.balance ?? '0').replace('n', '')); }
-                            catch (e) { burnedRaw = 0n; }
-                            break;
+                let _strategy = 'none';
+
+                // ── Strategy 1: direct tokenBalance() lookup ──────────────
+                // Most reliable — query the exact (account, token) pair directly.
+                try {
+                    const directBal = await client.tokenBalance(burnAccount, tokenAccount);
+                    // SDK may return a bigint, a number, or an object with a .balance / .amount field
+                    if (directBal !== null && directBal !== undefined) {
+                        if (typeof directBal === 'bigint') {
+                            burnedRaw = directBal;
+                            _strategy = 'direct-bigint';
+                        } else if (typeof directBal === 'number') {
+                            burnedRaw = BigInt(Math.round(directBal));
+                            _strategy = 'direct-number';
+                        } else if (typeof directBal === 'object') {
+                            // Try common field names
+                            const raw = directBal?.balance ?? directBal?.amount ?? directBal?.value ?? directBal?.raw;
+                            if (raw !== undefined && raw !== null) {
+                                burnedRaw = BigInt(String(raw).replace('n',''));
+                                _strategy = 'direct-object';
+                            }
+                        }
+                    }
+                } catch (e1) {
+                    console.warn('[Burn] tokenBalance() failed, falling back to allBalances:', e1?.message);
+                }
+
+                // ── Strategy 2: allBalances() scan (fallback) ────────────
+                if (_strategy === 'none') {
+                    const balances = await client.allBalances(burnAccount);
+                    console.debug('[Burn] allBalances raw:', JSON.stringify(balances));
+
+                    if (Array.isArray(balances)) {
+                        for (const b of balances) {
+                            // Try every known shape the SDK might use for the token identifier
+                            const candidates = [
+                                b?.token?.publicKeyString?.get?.(),
+                                b?.token?.publicKeyString,
+                                b?.token?.address,
+                                b?.token?.toString?.(),
+                                b?.token,
+                                b?.tokenAddress,
+                                b?.mint,
+                                b?.asset,
+                            ].map(v => (v !== undefined && v !== null) ? String(v) : '');
+
+                            const matched = candidates.some(c => c === PUNKS_TOKEN_ADDRESS);
+                            console.debug('[Burn] balance entry candidates:', candidates, 'matched:', matched);
+
+                            if (matched) {
+                                // Try every known shape for the balance value
+                                const rawVal = b?.balance ?? b?.amount ?? b?.value ?? b?.raw ?? '0';
+                                try { burnedRaw = BigInt(String(rawVal).replace('n','')); }
+                                catch (e) { burnedRaw = 0n; }
+                                _strategy = 'allbalances-scan';
+                                break;
+                            }
                         }
                     }
                 }
+
+                console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw}`);
 
                 const burned = Number(burnedRaw) / Math.pow(10, PUNKS_DECIMALS);
                 const effectiveCirculating = PUNKS_TOTAL_SUPPLY - burned;
                 const pct = (burned / PUNKS_TOTAL_SUPPLY) * 100;
 
+                // Update debug status element if present
+                const dbgEl = document.getElementById('burnDebugStatus');
+                if (dbgEl) dbgEl.textContent = `raw=${burnedRaw} · via ${_strategy} · ${new Date().toLocaleTimeString()}`;
+
                 // ─── Detect a NEW burn vs the previous sample ──────
-                const history = loadBurnHistory();
-                const previousBurn = history.length ? history[history.length - 1].burned : null;
+                // Read history BEFORE pushing the new entry so previousBurn
+                // is the last *persisted* value, not the one we're about to write.
+                const historyBefore = loadBurnHistory();
+                const previousBurn = historyBefore.length ? historyBefore[historyBefore.length - 1].burned : null;
                 let delta = 0;
                 if (previousBurn != null && burned > previousBurn) {
                     delta = burned - previousBurn;
-                    // Don't trigger animation on the very first poll of a session;
-                    // only when we genuinely observe an increase between two samples.
                     triggerBurnAnimation();
                 }
+                // Now persist the new sample (will push if value changed or heartbeat due)
                 pushBurnHistory(Date.now(), burned);
 
                 elBurn.textContent = fmtPunks(burned);
@@ -3020,10 +3089,16 @@
                 renderCoinChart(portal.currentChartRange);
                 paintCollections();
                 renderLiveFeed();
-                updateBurnStats();
+                await updateBurnStats();
                 document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
             } catch (e) { /* silent */ }
         }, 60000);
+
+        // Dedicated burn vault poll — runs every 20 s so new burns appear
+        // on the chart within one cycle rather than waiting the full 60 s loop.
+        setInterval(async () => {
+            try { await updateBurnStats(); } catch (e) { /* silent */ }
+        }, 20000);
     </script>
 </body>
 </html>
