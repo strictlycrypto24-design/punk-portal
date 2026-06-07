@@ -1495,6 +1495,11 @@
         // Matches the look of state.pulseChart in PunkSwap: cyan/purple
         // glow on the line, depth shadow underneath, volume bars on a
         // secondary axis, watermark, gold ticks, fira-code labels.
+        // Helper: swap the __A__ alpha placeholder in a color template string
+        function colorAlpha(template, alpha) {
+            return template.replace('__A__', String(alpha));
+        }
+
         function renderPunkStyleChart(opts) {
             const { canvasId, prevChartKey, series, colorMain, colorShadow, watermarkText, unitLabel } = opts;
 
@@ -1505,21 +1510,21 @@
             const h = canvas.clientHeight || 260;
 
             const gradMain = ctx.createLinearGradient(0, 0, 0, h);
-            gradMain.addColorStop(0,   colorMain.replace('0)', '0.55)'));
-            gradMain.addColorStop(0.4, colorMain.replace('0)', '0.20)'));
-            gradMain.addColorStop(1,   colorMain.replace('0)', '0.00)'));
+            gradMain.addColorStop(0,   colorAlpha(colorMain, 0.55));
+            gradMain.addColorStop(0.4, colorAlpha(colorMain, 0.20));
+            gradMain.addColorStop(1,   colorAlpha(colorMain, 0.00));
 
             const gradShadow = ctx.createLinearGradient(0, 10, 0, h + 10);
-            gradShadow.addColorStop(0, colorShadow.replace('0)', '0.30)'));
-            gradShadow.addColorStop(1, colorShadow.replace('0)', '0.00)'));
+            gradShadow.addColorStop(0, colorAlpha(colorShadow, 0.30));
+            gradShadow.addColorStop(1, colorAlpha(colorShadow, 0.00));
 
             const gradVol = ctx.createLinearGradient(0, 0, 0, h);
-            gradVol.addColorStop(0, colorMain.replace('0)', '0.25)'));
-            gradVol.addColorStop(1, colorMain.replace('0)', '0.02)'));
+            gradVol.addColorStop(0, colorAlpha(colorMain, 0.25));
+            gradVol.addColorStop(1, colorAlpha(colorMain, 0.02));
 
             if (portal.charts[prevChartKey]) portal.charts[prevChartKey].destroy();
 
-            const lineColor = colorMain.replace('0)', '1)');
+            const lineColor = colorAlpha(colorMain, 1);
             const points = series.values.length;
             const showPoints = points <= 30;
 
@@ -1570,7 +1575,7 @@
                             data: series.counts || [],
                             type: 'bar',
                             backgroundColor: gradVol,
-                            borderColor: colorMain.replace('0)', '0.35)'),
+                            borderColor: colorAlpha(colorMain, 0.35),
                             borderWidth: 1,
                             borderRadius: 3,
                             yAxisID: 'yVol',
@@ -1584,7 +1589,7 @@
                     beforeDatasetsDraw(chart) {
                         chart.ctx.save();
                         chart.ctx.shadowBlur  = 20;
-                        chart.ctx.shadowColor = colorMain.replace('0)', '0.65)');
+                        chart.ctx.shadowColor = colorAlpha(colorMain, 0.65);
                     },
                     afterDatasetsDraw(chart) { chart.ctx.restore(); }
                 }, {
@@ -1617,7 +1622,7 @@
                             backgroundColor: 'rgba(4,4,18,0.97)',
                             titleColor: lineColor,
                             bodyColor: '#e2e8f0',
-                            borderColor: colorMain.replace('0)', '0.5)'),
+                            borderColor: colorAlpha(colorMain, 0.5),
                             borderWidth: 1,
                             padding: 14,
                             cornerRadius: 10,
@@ -1634,7 +1639,7 @@
                     },
                     scales: {
                         x: {
-                            grid: { color: colorMain.replace('0)', '0.04)'), drawBorder: false },
+                            grid: { color: colorAlpha(colorMain, 0.04), drawBorder: false },
                             ticks: {
                                 color: '#555',
                                 font: { family: 'Fira Code', size: 9 },
@@ -1647,7 +1652,7 @@
                         y: {
                             min: 0,
                             beginAtZero: true,
-                            grid: { color: colorMain.replace('0)', '0.07)'), drawBorder: false },
+                            grid: { color: colorAlpha(colorMain, 0.07), drawBorder: false },
                             ticks: {
                                 color: '#d4a017',
                                 font: { family: 'Fira Code', size: 10, weight: 'bold' },
@@ -1681,8 +1686,8 @@
                 canvasId: 'swapChart',
                 prevChartKey: 'swap',
                 series,
-                colorMain: 'rgba(0, 255, 255, 0)',
-                colorShadow: 'rgba(0, 120, 140, 0)',
+                colorMain: 'rgba(0, 255, 255, __A__)',
+                colorShadow: 'rgba(0, 120, 140, __A__)',
                 watermarkText: 'PUNKSWAP',
                 unitLabel: 'KTA'
             });
@@ -1697,8 +1702,8 @@
                 canvasId: 'coinChart',
                 prevChartKey: 'coin',
                 series,
-                colorMain: 'rgba(168, 85, 247, 0)',
-                colorShadow: 'rgba(80, 30, 120, 0)',
+                colorMain: 'rgba(168, 85, 247, __A__)',
+                colorShadow: 'rgba(80, 30, 120, __A__)',
                 watermarkText: '$PUNKS',
                 unitLabel: 'PUNKS'
             });
@@ -2028,7 +2033,7 @@
         (function punkgridWallet() {
             // ─── Constants ─────────────────────────────────────────────
             const KTA_DECIMALS_RAW    = 1e18;
-            const PUNKS_DECIMALS      = 15;         // PUNKS raw = display * 1e15
+            const PUNKS_DECIMALS      = 18;        // SDK returns raw = display × 10^18
             const PUNKS_TOKEN         = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
             const ESCROW_ADDR         = 'keeta_aabp2fceji4jhokjktgjcrsvn4whqipccqfcbk2ojoe7x2xbionukytbh567xoy';
             const VAULT_STORAGE_KEY   = 'punkgrid_vault_v1';
@@ -2843,8 +2848,9 @@
         const BURN_VAULT_ADDRESS = 'keeta_aabrwqqwtbahteycc4stsum5s35jg7wjqak2eekrwkri2ssahie77g5ye6su5oi';
         const PUNKS_TOKEN_ADDRESS = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
         const PUNKS_TOTAL_SUPPLY  = 67_000_000_000;
-        // PUNKS uses 9 decimals; on-chain raw = display * 1e9
-        const PUNKS_DECIMALS = 15; // Keeta on-chain raw = display × 10^15 (confirmed: raw=2e18 / 1e15 = 2000)
+        // PUNKS on-chain raw = display × 10^18  (confirmed from debug: raw≈-1.2e22 → /1e18 = 12,000)
+        // The SDK returns all token balances at 10^18 scale regardless of token-specific decimals.
+        const PUNKS_DECIMALS = 18;
         // localStorage key for the rolling burn history (~last 7 days of samples)
         const BURN_HISTORY_KEY = 'punks_burn_history_v1';
         const BURN_HISTORY_MAX = 168; // ~7 days @ 1 sample/hour, but we'll prune older anyway
@@ -3007,86 +3013,77 @@
             const elCirc  = document.getElementById('statEffectiveCirc');
             const elDelta = document.getElementById('burnDelta');
             try {
-                // SDK docs: client.balance(token) returns Promise<bigint> for the
-                // client's own account. We set { account: burnVault } in getBurnClient()
-                // so this reads the burn vault's PUNKS balance directly.
-                const client = getBurnClient();
+                // ── Use the EXACT same pattern as the working wallet refreshBalance ──
+                // refreshBalance does: allBalances(acct) passing the account as an arg.
+                // We create a plain read-only client (no account binding) and pass the
+                // burn vault account directly to allBalances() — same call, same result.
+                if (typeof KeetaNet === 'undefined' || !KeetaNet.UserClient) {
+                    throw new Error('KeetaNet SDK not loaded');
+                }
+                const burnAccount = KeetaNet.lib.Account.fromPublicKeyString(BURN_VAULT_ADDRESS);
+                // Plain client — no account baked in, just like the wallet client
+                const client = KeetaNet.UserClient.fromNetwork('main', null, {});
 
                 let burnedRaw = 0n;
                 let _strategy = 'none';
 
-                // ── Strategy 1: balance(tokenAddressString) ─────────────
-                // Correct per SDK docs: balance(token: string) → Promise<bigint>
+                // Primary: allBalances(burnAccount) — identical to wallet's allBalances(acct)
+                let balances;
                 try {
-                    const raw = await client.balance(PUNKS_TOKEN_ADDRESS);
-                    if (typeof raw === 'bigint') {
-                        burnedRaw = raw;
-                        _strategy = 'balance-bigint';
-                    } else if (raw !== null && raw !== undefined) {
-                        burnedRaw = BigInt(String(raw).replace('n',''));
-                        _strategy = 'balance-coerced';
-                    }
-                } catch (e1) {
-                    console.warn('[Burn] balance() failed:', e1?.message);
+                    balances = await client.allBalances(burnAccount);
+                    _strategy = 'allBalances-arg';
+                } catch(e1) {
+                    console.warn('[Burn] allBalances(acct) failed:', e1?.message);
                 }
 
-                // ── Strategy 2: allBalances() scan (fallback) ────────────
-                if (_strategy === 'none') {
-                    let allBal;
-                    try { allBal = await client.allBalances(); } catch(e2) {
-                        console.warn('[Burn] allBalances() failed:', e2?.message);
+                // Fallback: allBalances() without arg (old bound-account style)
+                if (!balances) {
+                    try {
+                        const c2 = KeetaNet.UserClient.fromNetwork('main', null, { account: burnAccount });
+                        balances = await c2.allBalances();
+                        _strategy = 'allBalances-bound';
+                    } catch(e2) {
+                        console.warn('[Burn] allBalances() bound failed:', e2?.message);
                     }
-                    console.debug('[Burn] allBalances raw:', JSON.stringify(allBal));
+                }
 
-                    // GetAllBalancesResponse may be an array or an object with a balances key
-                    const list = Array.isArray(allBal) ? allBal
-                        : (allBal?.balances ?? allBal?.tokens ?? []);
-
-                    for (const b of list) {
-                        const candidates = [
-                            b?.token?.publicKeyString?.get?.(),
-                            b?.token?.publicKeyString,
-                            b?.token?.toString?.(),
-                            b?.token,
-                            b?.tokenAddress,
-                            b?.mint,
-                        ].map(v => (v !== undefined && v !== null) ? String(v) : '');
-
-                        if (candidates.some(c => c === PUNKS_TOKEN_ADDRESS)) {
-                            const rawVal = b?.balance ?? b?.amount ?? b?.value ?? b?.raw ?? '0';
-                            try { burnedRaw = BigInt(String(rawVal).replace('n','')); }
-                            catch (e) { burnedRaw = 0n; }
-                            _strategy = 'allbalances-scan';
+                // Walk the balance array — same token-matching logic as refreshBalance
+                if (Array.isArray(balances)) {
+                    for (const b of balances) {
+                        const tokenAddr = String(
+                            b?.token?.publicKeyString?.get?.() ??
+                            b?.token?.publicKeyString ??
+                            b?.token?.toString?.() ??
+                            b?.token ??
+                            b?.tokenAddress ??
+                            b?.mint ?? ''
+                        );
+                        if (tokenAddr === PUNKS_TOKEN_ADDRESS) {
+                            let raw;
+                            try { raw = BigInt(String(b.balance ?? b.amount ?? b.value ?? b.raw ?? '0').replace('n','')); }
+                            catch(e) { raw = 0n; }
+                            burnedRaw = raw;
                             break;
                         }
                     }
-                    if (_strategy === 'none') {
-                        console.warn('[Burn] allBalances scan found no PUNKS entry. Full response:', allBal);
-                    }
                 }
 
-                // Always take absolute value — Keeta's ledger may return
-                // receive-side balances as negative (credit notation).
+                // Absolute value — Keeta may return receive-side balances as negative
                 const absBurnedRaw = burnedRaw < 0n ? -burnedRaw : burnedRaw;
 
-                // Auto-detect scale: the SDK balance() may return the value
-                // already in a different unit. We know there are 2000 PUNKS in
-                // the vault right now, so we can infer the correct divisor.
-                // Standard: divide by 10^PUNKS_DECIMALS (10^15).
-                let burned = Number(absBurnedRaw) / Math.pow(10, PUNKS_DECIMALS);
+                // Divide by 10^PUNKS_DECIMALS (18) — same as wallet uses for PUNKS
+                const burned = Number(absBurnedRaw) / Math.pow(10, PUNKS_DECIMALS);
 
                 console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw} absBurnedRaw=${absBurnedRaw} burned=${burned}`);
 
                 const effectiveCirculating = PUNKS_TOTAL_SUPPLY - burned;
                 const pct = (burned / PUNKS_TOTAL_SUPPLY) * 100;
 
-                // Update debug status element if present
+                // Update debug status
                 const dbgEl = document.getElementById('burnDebugStatus');
                 if (dbgEl) dbgEl.textContent = `raw=${burnedRaw} · via ${_strategy} · ${new Date().toLocaleTimeString()}`;
 
                 // ─── Detect a NEW burn vs the previous sample ──────
-                // Read history BEFORE pushing the new entry so previousBurn
-                // is the last *persisted* value, not the one we're about to write.
                 const historyBefore = loadBurnHistory();
                 const previousBurn = historyBefore.length ? historyBefore[historyBefore.length - 1].burned : null;
                 let delta = 0;
@@ -3094,7 +3091,6 @@
                     delta = burned - previousBurn;
                     triggerBurnAnimation();
                 }
-                // Now persist the new sample (will push if value changed or heartbeat due)
                 pushBurnHistory(Date.now(), burned);
 
                 elBurn.textContent = fmtPunks(burned);
@@ -3111,7 +3107,7 @@
                 if (elPct)  elPct.textContent  = 'Burn vault offline';
                 if (elCirc) elCirc.innerHTML   = '— <span class="text-orange-400 text-xs font-bold">PUNKS</span>';
                 if (elDelta) elDelta.textContent = '—';
-                renderBurnChart(); // still show whatever history we have
+                renderBurnChart();
             }
         }
 
