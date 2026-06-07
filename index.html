@@ -1247,6 +1247,13 @@
                 const txs = [];
                 snap.forEach(d => txs.push({ id: d.id, ...d.data() }));
                 portal.transactions = txs;
+                // One-time diagnostic: log first tx to see actual field names
+                if (txs.length) {
+                    const sample = txs[0];
+                    console.log('[Portal] TX sample fields:', JSON.stringify(sample));
+                    const priceGuess = sample.price ?? sample.priceKTA ?? sample.amount ?? sample.salePrice ?? 'NOT FOUND';
+                    console.log('[Portal] TX price field guess:', priceGuess, '| type:', sample.type, '| currency:', sample.currency ?? sample.paymentToken ?? 'NOT FOUND');
+                }
                 return txs;
             } catch (e) {
                 console.warn('[Portal] transactions load failed:', e.message);
@@ -1346,9 +1353,9 @@
                     return;
                 }
 
-                const price = parseFloat(tx.price) || 0;
+                const price = txPrice(tx);
                 if (price > 0) {
-                    if (tx.currency === 'PUNKS') punksVolume += price;
+                    if (txCurrency(tx) === 'PUNKS') punksVolume += price;
                     else ktaVolume += price;
                 }
                 if (tx.wallet) wallets.add(String(tx.wallet).toLowerCase());
@@ -1357,8 +1364,8 @@
                 const cid = tx.collectionId;
                 if (cid) {
                     if (!perCol[cid]) perCol[cid] = { volume: 0, floor: null, sales: 0 };
-                    if (price > 0 && tx.currency !== 'PUNKS') perCol[cid].volume += price;
-                    if (price > 0 && tx.currency !== 'PUNKS') {
+                    if (price > 0 && txCurrency(tx) !== 'PUNKS') perCol[cid].volume += price;
+                    if (price > 0 && txCurrency(tx) !== 'PUNKS') {
                         if (perCol[cid].floor == null || price < perCol[cid].floor) perCol[cid].floor = price;
                     }
                     perCol[cid].sales++;
@@ -1432,6 +1439,19 @@
             return null;
         }
 
+        // Resolve price from a transaction — PunkSwap may use different field names
+        // across versions. Try them all in priority order.
+        function txPrice(tx) {
+            const raw = tx.price ?? tx.priceKTA ?? tx.amount ?? tx.salePrice
+                     ?? tx.priceAmount ?? tx.ktaAmount ?? tx.value ?? 0;
+            return parseFloat(raw) || 0;
+        }
+
+        // Resolve currency
+        function txCurrency(tx) {
+            return tx.currency ?? tx.paymentToken ?? tx.token ?? 'KTA';
+        }
+
         function buildSeriesByDay(txs, daysBack, filterFn) {
             const buckets = {};
             const counts  = {};
@@ -1449,7 +1469,7 @@
                 if (!ts || (now - ts) > daysBack * dayMs) return;
                 const key = new Date(ts).toISOString().slice(0, 10);
                 if (buckets[key] != null) {
-                    buckets[key] += parseFloat(tx.price) || 0;
+                    buckets[key] += txPrice(tx);
                     counts[key]++;
                 }
             });
@@ -1648,7 +1668,7 @@
         function renderSwapChart(range) {
             const days = rangeToDays(range);
             const series = buildSeriesByDay(portal.transactions, days, tx =>
-                ['sale','auction_sale','mint'].includes(tx.type) && tx.currency !== 'PUNKS' && (parseFloat(tx.price) || 0) > 0
+                ['sale','auction_sale','mint'].includes(tx.type) && txCurrency(tx) !== 'PUNKS' && (parseFloat(tx.price) || 0) > 0
             );
             renderPunkStyleChart({
                 canvasId: 'swapChart',
@@ -1664,7 +1684,7 @@
         function renderCoinChart(range) {
             const days = rangeToDays(range);
             const series = buildSeriesByDay(portal.transactions, days, tx =>
-                ['sale','auction_sale','mint'].includes(tx.type) && tx.currency === 'PUNKS'
+                ['sale','auction_sale','mint'].includes(tx.type) && txCurrency(tx) === 'PUNKS'
             );
             renderPunkStyleChart({
                 canvasId: 'coinChart',
@@ -1754,9 +1774,9 @@
 
             container.innerHTML = filtered.map(tx => {
                 const ts = txTimestampMs(tx);
-                const price = parseFloat(tx.price) || 0;
+                const price = txPrice(tx);
                 const priceTxt = price > 0
-                    ? `<span class="orbitron font-bold ${tx.currency === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300'}">${fmt(price, 4)} ${tx.currency || 'KTA'}</span>`
+                    ? `<span class="orbitron font-bold ${txCurrency(tx) === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300'}">${fmt(price, 4)} ${txCurrency(tx)}</span>`
                     : '<span class="text-slate-600 mono text-xs">—</span>';
                 const nftName = safeText(tx.nftName || tx.nftId || 'NFT');
                 const wallet = shortAddr(tx.wallet);
@@ -2482,8 +2502,8 @@
                 right.className = 'text-right flex-shrink-0';
                 if (tx.price) {
                     const p = document.createElement('p');
-                    p.className = 'text-xs orbitron font-bold ' + (tx.currency === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300');
-                    p.textContent = Number(tx.price).toFixed(4) + ' ' + (tx.currency || 'KTA');
+                    p.className = 'text-xs orbitron font-bold ' + (txCurrency(tx) === 'PUNKS' ? 'text-purple-300' : 'text-cyan-300');
+                    p.textContent = txPrice(tx).toFixed(4) + ' ' + txCurrency(tx);
                     right.appendChild(p);
                 }
                 const ts = document.createElement('p');
