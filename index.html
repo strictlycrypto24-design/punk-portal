@@ -2838,11 +2838,30 @@
 
         function fmtPunks(n) {
             if (n == null || !Number.isFinite(n)) return '—';
-            if (n >= 1e9) return (n / 1e9).toFixed(3) + 'B';
-            if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-            if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
-            return n.toFixed(0);
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if (abs >= 1e9) return sign + (abs / 1e9).toFixed(3) + 'B';
+            if (abs >= 1e6) return sign + (abs / 1e6).toFixed(2) + 'M';
+            if (abs >= 1e3) return sign + (abs / 1e3).toFixed(2) + 'K';
+            return sign + abs.toFixed(0);
         }
+
+        // ─── One-time migration: wipe any history stored under old buggy code ──
+        // Old code stored zeros or wrong values. Force-clear so chart starts fresh.
+        (function migrateHistory() {
+            try {
+                const raw = localStorage.getItem(BURN_HISTORY_KEY);
+                if (!raw) return;
+                const arr = JSON.parse(raw);
+                if (!Array.isArray(arr)) { localStorage.removeItem(BURN_HISTORY_KEY); return; }
+                // If any entry has burned=0 or burned > total supply, wipe the whole thing
+                const hasBad = arr.some(p => !p || p.burned <= 0 || p.burned > PUNKS_TOTAL_SUPPLY);
+                if (hasBad) {
+                    localStorage.removeItem(BURN_HISTORY_KEY);
+                    console.log('[Burn] Wiped stale burn history');
+                }
+            } catch(e) { localStorage.removeItem(BURN_HISTORY_KEY); }
+        })();
 
         // ─── Burn history persistence ────────────────────────────
         // We don't have an indexer; we sample the burn balance each refresh
@@ -3019,9 +3038,27 @@
                     }
                 }
 
-                console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw}`);
+                // Always take absolute value — Keeta's ledger may return
+                // receive-side balances as negative (credit notation).
+                const absBurnedRaw = burnedRaw < 0n ? -burnedRaw : burnedRaw;
 
-                const burned = Number(burnedRaw) / Math.pow(10, PUNKS_DECIMALS);
+                // Auto-detect scale: the SDK balance() may return the value
+                // already in a different unit. We know there are 2000 PUNKS in
+                // the vault right now, so we can infer the correct divisor.
+                // Standard: divide by 10^PUNKS_DECIMALS (10^9).
+                let burned = Number(absBurnedRaw) / Math.pow(10, PUNKS_DECIMALS);
+
+                // Sanity-check: if burned > total supply, the raw value is in a
+                // different denomination (e.g. the SDK returned base units × 10^3
+                // extra). Walk down until sane.
+                let divisorExp = PUNKS_DECIMALS;
+                while (burned > PUNKS_TOTAL_SUPPLY && divisorExp < 30) {
+                    divisorExp += 3;
+                    burned = Number(absBurnedRaw) / Math.pow(10, divisorExp);
+                }
+
+                console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw} absBurnedRaw=${absBurnedRaw} burned=${burned} divisorExp=${divisorExp}`);
+
                 const effectiveCirculating = PUNKS_TOTAL_SUPPLY - burned;
                 const pct = (burned / PUNKS_TOTAL_SUPPLY) * 100;
 
