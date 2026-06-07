@@ -2822,17 +2822,17 @@
         const BURN_HISTORY_KEY = 'punks_burn_history_v1';
         const BURN_HISTORY_MAX = 168; // ~7 days @ 1 sample/hour, but we'll prune older anyway
 
-        // Reuses a single read-only KeetaNet client across calls
+        // Read-only client scoped to the burn vault account.
+        // SDK docs: pass null signer for read-only; pass target account in options.
+        // This makes allBalances() and balance() read THAT account, not the signer.
         let _burnClient = null;
         function getBurnClient() {
             if (_burnClient) return _burnClient;
             if (typeof KeetaNet === 'undefined' || !KeetaNet.UserClient) {
                 throw new Error('KeetaNet SDK not loaded');
             }
-            // Ephemeral throwaway account — we only read; we never sign
-            const ephemeralSeed    = KeetaNet.lib.Account.generateRandomSeed({ asString: true });
-            const ephemeralAccount = KeetaNet.lib.Account.fromSeed(ephemeralSeed, 0);
-            _burnClient = KeetaNet.UserClient.fromNetwork('main', ephemeralAccount);
+            const burnAccount = KeetaNet.lib.Account.fromPublicKeyString(BURN_VAULT_ADDRESS);
+            _burnClient = KeetaNet.UserClient.fromNetwork('main', null, { account: burnAccount });
             return _burnClient;
         }
 
@@ -2961,69 +2961,61 @@
             const elCirc  = document.getElementById('statEffectiveCirc');
             const elDelta = document.getElementById('burnDelta');
             try {
+                // SDK docs: client.balance(token) returns Promise<bigint> for the
+                // client's own account. We set { account: burnVault } in getBurnClient()
+                // so this reads the burn vault's PUNKS balance directly.
                 const client = getBurnClient();
-                const burnAccount = KeetaNet.lib.Account.fromPublicKeyString(BURN_VAULT_ADDRESS);
-                const tokenAccount = KeetaNet.lib.Account.fromPublicKeyString(PUNKS_TOKEN_ADDRESS);
 
                 let burnedRaw = 0n;
                 let _strategy = 'none';
 
-                // ── Strategy 1: direct tokenBalance() lookup ──────────────
-                // Most reliable — query the exact (account, token) pair directly.
+                // ── Strategy 1: balance(tokenAddressString) ─────────────
+                // Correct per SDK docs: balance(token: string) → Promise<bigint>
                 try {
-                    const directBal = await client.tokenBalance(burnAccount, tokenAccount);
-                    // SDK may return a bigint, a number, or an object with a .balance / .amount field
-                    if (directBal !== null && directBal !== undefined) {
-                        if (typeof directBal === 'bigint') {
-                            burnedRaw = directBal;
-                            _strategy = 'direct-bigint';
-                        } else if (typeof directBal === 'number') {
-                            burnedRaw = BigInt(Math.round(directBal));
-                            _strategy = 'direct-number';
-                        } else if (typeof directBal === 'object') {
-                            // Try common field names
-                            const raw = directBal?.balance ?? directBal?.amount ?? directBal?.value ?? directBal?.raw;
-                            if (raw !== undefined && raw !== null) {
-                                burnedRaw = BigInt(String(raw).replace('n',''));
-                                _strategy = 'direct-object';
-                            }
-                        }
+                    const raw = await client.balance(PUNKS_TOKEN_ADDRESS);
+                    if (typeof raw === 'bigint') {
+                        burnedRaw = raw;
+                        _strategy = 'balance-bigint';
+                    } else if (raw !== null && raw !== undefined) {
+                        burnedRaw = BigInt(String(raw).replace('n',''));
+                        _strategy = 'balance-coerced';
                     }
                 } catch (e1) {
-                    console.warn('[Burn] tokenBalance() failed, falling back to allBalances:', e1?.message);
+                    console.warn('[Burn] balance() failed:', e1?.message);
                 }
 
                 // ── Strategy 2: allBalances() scan (fallback) ────────────
                 if (_strategy === 'none') {
-                    const balances = await client.allBalances(burnAccount);
-                    console.debug('[Burn] allBalances raw:', JSON.stringify(balances));
+                    let allBal;
+                    try { allBal = await client.allBalances(); } catch(e2) {
+                        console.warn('[Burn] allBalances() failed:', e2?.message);
+                    }
+                    console.debug('[Burn] allBalances raw:', JSON.stringify(allBal));
 
-                    if (Array.isArray(balances)) {
-                        for (const b of balances) {
-                            // Try every known shape the SDK might use for the token identifier
-                            const candidates = [
-                                b?.token?.publicKeyString?.get?.(),
-                                b?.token?.publicKeyString,
-                                b?.token?.address,
-                                b?.token?.toString?.(),
-                                b?.token,
-                                b?.tokenAddress,
-                                b?.mint,
-                                b?.asset,
-                            ].map(v => (v !== undefined && v !== null) ? String(v) : '');
+                    // GetAllBalancesResponse may be an array or an object with a balances key
+                    const list = Array.isArray(allBal) ? allBal
+                        : (allBal?.balances ?? allBal?.tokens ?? []);
 
-                            const matched = candidates.some(c => c === PUNKS_TOKEN_ADDRESS);
-                            console.debug('[Burn] balance entry candidates:', candidates, 'matched:', matched);
+                    for (const b of list) {
+                        const candidates = [
+                            b?.token?.publicKeyString?.get?.(),
+                            b?.token?.publicKeyString,
+                            b?.token?.toString?.(),
+                            b?.token,
+                            b?.tokenAddress,
+                            b?.mint,
+                        ].map(v => (v !== undefined && v !== null) ? String(v) : '');
 
-                            if (matched) {
-                                // Try every known shape for the balance value
-                                const rawVal = b?.balance ?? b?.amount ?? b?.value ?? b?.raw ?? '0';
-                                try { burnedRaw = BigInt(String(rawVal).replace('n','')); }
-                                catch (e) { burnedRaw = 0n; }
-                                _strategy = 'allbalances-scan';
-                                break;
-                            }
+                        if (candidates.some(c => c === PUNKS_TOKEN_ADDRESS)) {
+                            const rawVal = b?.balance ?? b?.amount ?? b?.value ?? b?.raw ?? '0';
+                            try { burnedRaw = BigInt(String(rawVal).replace('n','')); }
+                            catch (e) { burnedRaw = 0n; }
+                            _strategy = 'allbalances-scan';
+                            break;
                         }
+                    }
+                    if (_strategy === 'none') {
+                        console.warn('[Burn] allBalances scan found no PUNKS entry. Full response:', allBal);
                     }
                 }
 
