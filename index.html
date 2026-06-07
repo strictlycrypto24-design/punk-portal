@@ -2001,7 +2001,7 @@
         (function punkgridWallet() {
             // ─── Constants ─────────────────────────────────────────────
             const KTA_DECIMALS_RAW    = 1e18;
-            const PUNKS_DECIMALS      = 9;          // PUNKS raw = display * 1e9
+            const PUNKS_DECIMALS      = 12;         // PUNKS raw = display * 1e12
             const PUNKS_TOKEN         = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
             const ESCROW_ADDR         = 'keeta_aabp2fceji4jhokjktgjcrsvn4whqipccqfcbk2ojoe7x2xbionukytbh567xoy';
             const VAULT_STORAGE_KEY   = 'punkgrid_vault_v1';
@@ -2817,7 +2817,7 @@
         const PUNKS_TOKEN_ADDRESS = 'keeta_anbddd6wtxbe6sjgvpfb7yjehkfeoulufieim62zrddkmuaw5wnq464hd32wa';
         const PUNKS_TOTAL_SUPPLY  = 67_000_000_000;
         // PUNKS uses 9 decimals; on-chain raw = display * 1e9
-        const PUNKS_DECIMALS = 9;
+        const PUNKS_DECIMALS = 12; // Keeta on-chain raw = display × 10^12
         // localStorage key for the rolling burn history (~last 7 days of samples)
         const BURN_HISTORY_KEY = 'punks_burn_history_v1';
         const BURN_HISTORY_MAX = 168; // ~7 days @ 1 sample/hour, but we'll prune older anyway
@@ -3045,19 +3045,10 @@
                 // Auto-detect scale: the SDK balance() may return the value
                 // already in a different unit. We know there are 2000 PUNKS in
                 // the vault right now, so we can infer the correct divisor.
-                // Standard: divide by 10^PUNKS_DECIMALS (10^9).
+                // Standard: divide by 10^PUNKS_DECIMALS (10^12).
                 let burned = Number(absBurnedRaw) / Math.pow(10, PUNKS_DECIMALS);
 
-                // Sanity-check: if burned > total supply, the raw value is in a
-                // different denomination (e.g. the SDK returned base units × 10^3
-                // extra). Walk down until sane.
-                let divisorExp = PUNKS_DECIMALS;
-                while (burned > PUNKS_TOTAL_SUPPLY && divisorExp < 30) {
-                    divisorExp += 3;
-                    burned = Number(absBurnedRaw) / Math.pow(10, divisorExp);
-                }
-
-                console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw} absBurnedRaw=${absBurnedRaw} burned=${burned} divisorExp=${divisorExp}`);
+                console.log(`[Burn] strategy=${_strategy} burnedRaw=${burnedRaw} absBurnedRaw=${absBurnedRaw} burned=${burned}`);
 
                 const effectiveCirculating = PUNKS_TOTAL_SUPPLY - burned;
                 const pct = (burned / PUNKS_TOTAL_SUPPLY) * 100;
